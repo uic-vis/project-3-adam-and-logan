@@ -1,10 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang='en'>
 	<head>
 		<title>CTA 'L' Ridership</title>
+		<link rel='stylesheet' href='css/styles.css'>
+		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+		<link rel="manifest" href="/site.webmanifest">
+		<script src='js/d3.v7.min.js'></script>
+		<script src='js/main.js'></script>
 	</head>
 
 	<body>
-		Hello world!
+		<div id='header'>
+			<h1>CTA 'L' Ridership Data</h1>
+		</div>
+		
+		<h2>Average Daily Ridership</h2>
+		<div id='histogram' class='vis'></div>
+		<h2>Ridership by Year</h2>
+		<div id='linegraph' class='vis'></div>
+		<h2>Ridership by Line</h2>
+		<div id='barchart' class='vis'></div>
+		<h2>Mapping Stations</h2>
+		<div id='map' class='vis'></div>
+		<h2>Station Detail</h2>
+		<div id='map-barchart' class='vis'></div>
 	</body>
 </html>
