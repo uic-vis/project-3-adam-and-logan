@@ -1,0 +1,9 @@
+#header {
+	margin: 5vh auto 5vh;
+	text-align: center;
+}
+
+.vis {
+	height: 60vh;
+	border-style: dashed;
+}
