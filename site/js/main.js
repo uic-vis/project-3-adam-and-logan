@@ -78,6 +78,10 @@ async function loadRidership(lstations) {
 }
 
 function drawHistogram(ridership) {
+	// constants
+	const width = 1000;
+	const height = 400;
+
 	var ridershipHistogram = Histogram(
 		d3.rollup(
 		  ridership.filter(d => d.date.getFullYear() == 2019),
@@ -86,7 +90,10 @@ function drawHistogram(ridership) {
 		),
 		{
 		  value: d => d[1] / 365,
+			width: width,
+			height: height,
 		  color: rgb_values[3],
+			normalize: true,
 		}
 	);
 

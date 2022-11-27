@@ -4,6 +4,10 @@
 }
 
 .vis {
-	height: 60vh;
 	border-style: dashed;
+}
+
+svg {
+	display: block;
+	margin: auto;
 }
