@@ -4,6 +4,14 @@ const color_names = ["blue", "green", "yellow", "red", "orange", "brown", "purpl
 
 main();
 
+async function main() {
+	console.log('async test');
+	const lstations = await loadLstations();
+	const ridership = await loadRidership(lstations);
+	console.log(ridership);
+	console.log(lstations);
+}
+
 async function fetchURL(url) {
 	console.log("fetching from URL...")
 	const data = await fetch(url)
@@ -19,14 +27,6 @@ function fetchLocal(filepath, type) {
 	} else if (type == 'json') {
 		return d3.json(filepath);
 	}
-}
-
-async function main() {
-	console.log('async test');
-	const lstations = await loadLstations();
-	const ridership = await loadRidership(lstations);
-	console.log(ridership);
-	console.log(lstations);
 }
 
 async function loadLstations() {
