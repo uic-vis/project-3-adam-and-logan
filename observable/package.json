@@ -1,0 +1,14 @@
+{
+  "name": "@abeige/cs-424-project-2",
+  "main": "91b28c84a3515f1a@3602.js",
+  "version": "3602.0.0",
+  "homepage": "https://observablehq.com/@abeige/cs-424-project-2",
+  "author": {
+    "name": "Adam Beigel",
+    "url": "https://observablehq.com/@abeige"
+  },
+  "type": "module",
+  "peerDependencies": {
+    "@observablehq/runtime": "4 - 5"
+  }
+}

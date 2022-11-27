@@ -1,34 +1,113 @@
 <!DOCTYPE html>
-<html lang='en'>
-	<head>
-		<title>CTA 'L' Ridership</title>
-		<link rel='stylesheet' href='css/styles.css'>
-		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-		<link rel="manifest" href="/site.webmanifest">
-		<script src='js/d3.v7.min.js'></script>
-		<script src='js/main.js'></script>
-	</head>
+<html lang="en">
+  <head>
+    <title>CTA 'L' Ridership</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <script src="js/d3.v7.min.js"></script>
+    <script src="js/main.js"></script>
+  </head>
 
-	<body>
-		<div id='header'>
-			<h1>CTA 'L' Ridership Data</h1>
-		</div>
-		
-		<h2>Average Daily Ridership</h2>
-		<div id='histogram' class='vis'></div>
-		
-		<h2>Ridership by Year</h2>
-		<div id='linegraph' class='vis'></div>
+  <body>
+    <div id="header">
+      <h1>CTA 'L' Ridership Data</h1>
+    </div>
 
-		<h2>Ridership by Line</h2>
-		<div id='barchart' class='vis'></div>
+    <div class="graphs-container">
+      <h2>Average Daily Ridership</h2>
+      <div id="histogram" class="vis">
+        <div id="observablehq-ridershipHistogram-94290cc0"></div>
+        <p>
+          Credit:
+          <a href="https://observablehq.com/@abeige/cs-424-project-2"
+            >CTA &#039;L&#039; Ridership Data by Adam Beigel</a
+          >
+        </p>
 
-		<h2>Mapping Stations</h2>
-		<div id='map' class='vis'></div>
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/@observablehq/inspector@5/dist/inspector.css"
+        />
+        <script type="module">
+          import {
+            Runtime,
+            Inspector,
+          } from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@5/dist/runtime.js";
+          import define from "https://api.observablehq.com/@abeige/cs-424-project-2@3609.js?v=3";
+          new Runtime().module(define, (name) => {
+            if (name === "ridershipHistogram")
+              return new Inspector(
+                document.querySelector(
+                  "#observablehq-ridershipHistogram-94290cc0"
+                )
+              );
+          });
+        </script>
+      </div>
 
-		<h2>Station Detail</h2>
-		<div id='map-barchart' class='vis'></div>
-	</body>
+      <h2>Ridership by Year</h2>
+      <div id="linegraph" class="vis"></div>
+
+      <h2>Ridership by Line</h2>
+      <!-- not sure how to make the bar chart bigger. 
+        In the observable notebook I would change visHeight variable from 400 to 600 but I'm not sure how to make it responsive-->
+      <div id="barchart" class="vis">
+        <div id="observablehq-bars-5a447fd8" class="bar-chart"></div>
+        <div id="slider-container">
+          Year: <span id="year"></span>
+          <input
+            id="yearSlider"
+            type="range"
+            min="2001"
+            max="2022"
+            step="1"
+            value="2015"
+          />
+          Month: <span id="month"></span>
+          <input
+            id="monthSlider"
+            type="range"
+            min="0"
+            max="11"
+            step="1"
+            value="1"
+          />
+          <!--   <p id="selectorYear"></p> -->
+        </div>
+        <p>
+          Credit:
+          <a href="https://observablehq.com/@abeige/cs-424-project-2"
+            >CTA &#039;L&#039; Ridership Data by Adam Beigel</a
+          >
+        </p>
+
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/@observablehq/inspector@5/dist/inspector.css"
+        />
+        <script type="module">
+          import {
+            Runtime,
+            Inspector,
+          } from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@5/dist/runtime.js";
+          import define from "https://api.observablehq.com/@abeige/cs-424-project-2@3607.js?v=3";
+          new Runtime().module(define, (name) => {
+            if (name === "bars")
+              return new Inspector(
+                document.querySelector("#observablehq-bars-5a447fd8")
+              );
+          });
+        </script>
+      </div>
+
+      <h2>Mapping Stations</h2>
+      <div id="map" class="vis"></div>
+
+      <h2>Station Detail</h2>
+      <div id="map-barchart" class="vis"></div>
+    </div>
+  </body>
 </html>

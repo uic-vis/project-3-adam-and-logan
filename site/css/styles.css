@@ -1,9 +1,28 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 #header {
-	margin: 5vh auto 5vh;
-	text-align: center;
+  margin: 5vh auto 5vh;
+  text-align: center;
 }
 
 .vis {
-	height: 60vh;
-	border-style: dashed;
+  height: 60vh;
+  width: 90%;
+  border-style: dashed;
+  margin-bottom: 2em;
+}
+
+.graphs-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.bar-chart {
+  height: 60vh;
 }
