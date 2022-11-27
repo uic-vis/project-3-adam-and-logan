@@ -1,15 +1,19 @@
 // loading data, drawing charts
 
+import {Histogram} from "@d3/histogram"
+
 const color_names = ["blue", "green", "yellow", "red", "orange", "brown", "purple", "pink"];
+const rgb_values = ["#00A1DE", "#009B3A", "#F9E300", "#C60C30", "#F9461C", "#62361B", "#522398", "#E27EA6"];
 
 main();
 
 async function main() {
-	console.log('async test');
 	const lstations = await loadLstations();
 	const ridership = await loadRidership(lstations);
 	console.log(ridership);
 	console.log(lstations);
+
+	drawHistogram();
 }
 
 async function fetchURL(url) {
@@ -75,4 +79,32 @@ async function loadRidership(lstations) {
 	}
 }
 
+function drawHistogram(ridership) {
+	// constants
+	const width = 1000;
+	const height = 400;
+	const margin = {top:50, left:90, bottom:30, right:15};
+  const totalWidth = width + margin.left + margin.right;
+  const totalHeight = height + margin.top + margin.bottom;
 
+	var svg = d3.select('#hist-container')
+		.append('svg')
+		.attr('viewBox', `0 0 ${totalWidth} ${totalHeight}`)
+		.attr('id', 'histogram');
+	
+	console.log(svg);
+
+	// ridershipHistogram = Histogram(
+	// 	d3.rollup(
+	// 	  ridership.filter(d => d.date.getFullYear() == 2019),
+	// 	  group => group.reduce((sum, item) => sum + item.rides, 0),
+	// 	  d => d.station_id
+	// 	),
+	// 	{
+	// 	  value: d => d[1] / 365,
+	// 	  width,
+	// 	  height: 300,
+	// 	  color: rgb_values[3]
+	// 	}
+	//   );
+}
