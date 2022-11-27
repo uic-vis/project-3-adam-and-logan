@@ -12,6 +12,7 @@ async function main() {
 	console.log(lstations);
 
 	drawHistogram(ridership);
+	drawLineChart(ridership);
 }
 
 async function fetchURL(url) {
@@ -98,7 +99,99 @@ function drawHistogram(ridership) {
 	);
 
 	d3.select("#hist-container")
-		.append(() => ridershipHistogram);
+		.append(() => ridershipHistogram)
+		.attr('viewBox', `0 0 ${width} ${height}`)
+		.attr('class', 'svg-item');
+}
+
+function drawLineChart(ridership) {
+	var chart = lineChart(ridership);
+	chart.update(ridership);
+
+	console.log(chart);
+
+	d3.select("#linechart-container")
+		.append(() => chart);
+}
+
+function lineChart(ridership) {
+		// set up
+		const margin = {top: 10, right: 20, bottom: 50, left: 100};
+		const visWidth = 1000;
+		const visHeight = 400;
+	
+		const svg = d3.create('svg')
+			.attr('viewBox', `0 0 ${visWidth + margin.left + margin.right} ${visHeight + margin.top + margin.bottom}`);
+		// .attr('width', visWidth + margin.left + margin.right)
+		// .attr('height', visHeight + margin.top + margin.bottom);
+	
+		const g = svg.append("g")
+			.attr("transform", `translate(${margin.left}, ${margin.top})`);
+	
+		// create scales
+		var x = d3.scaleTime()
+			.domain(d3.extent(ridership, d => d.date))
+			.range([0, visWidth]);
+	
+		const y = d3.scaleLinear()
+			.range([visHeight, 0]);
+	
+		// create and add axes
+		const xAxis = d3.axisBottom(x);
+		const xAxisGroup = g.append("g")
+			.call(xAxis)
+			.attr("transform", `translate(0, ${visHeight})`);
+		xAxisGroup.append('text')
+			.attr('x', visWidth / 2)
+			.attr('y', 40)
+			.attr('fill', 'black')
+			.attr('text-anchor', 'middle')
+			.text('Date');
+	
+		const yAxis = d3.axisLeft(y).tickSizeOuter(0);
+		const yAxisGroup = g.append("g")
+		yAxisGroup.append("text")
+			.attr("x", -visHeight / 2)
+			.attr("y", -70)
+			.attr("fill", "black")
+			.attr("text-anchor", "middle")
+			.attr('transform', 'rotate(-90)')
+			.text("Ridership Total");
+	
+		function update(data) {
+			// get the number of rides for each month
+			const dailyCounts = d3.rollup(
+				data,
+				group => group.reduce((sum, item) => sum + item.rides, 0),
+				d => d.date.getFullYear() + '-' + ("0" + (d.date.getMonth() + 1)).slice(-2)
+			);
+	
+			// update y scale
+			y.domain([0, d3.max(dailyCounts.values())]).nice()
+	
+			// update y axis
+			const t = svg.transition()
+				.ease(d3.easeLinear)
+				.duration(200);
+	
+			yAxisGroup
+				.transition(t)
+				.call(yAxis);
+	
+			const parseTime = d3.timeParse("%Y-%m");
+	
+			svg.append("path")
+				.datum(dailyCounts)
+				.attr("fill", "none")
+				.attr("stroke", "steelblue")
+				.attr("stroke-width", 1.5)
+				.attr(
+					"d",
+					d3.line().x(([date, count]) => x(parseTime(date)) + margin.left).y(([date, count]) => y(count) + margin.top)
+				)
+		}
+	
+		return Object.assign(svg.node(), { update });
 }
 
 // Copyright 2021 Observable, Inc.
