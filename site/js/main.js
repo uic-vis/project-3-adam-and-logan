@@ -8,11 +8,19 @@ main();
 async function main() {
 	const lstations = await loadLstations();
 	const ridership = await loadRidership(lstations);
+	const raillines = await fetchLocal('data/raillines.geojson', 'json');
+	const zipcodes = await fetchLocal('data/zipcodes.geojson', 'json');
+	const weather = await fetchLocal('data/weather.csv', 'csv');
 	console.log(ridership);
 	console.log(lstations);
+	console.log(raillines);
+	console.log(zipcodes);
+	console.log(weather);
 
 	drawHistogram(ridership);
 	drawLineChart(ridership);
+	drawMap();
+	drawLinkedMap();
 }
 
 async function fetchURL(url) {
@@ -295,3 +303,7 @@ function lineChart(ridership) {
 	
 		return Object.assign(svg.node(), { update });
 }
+
+function drawMap(ridership, lstations) {}
+
+function drawLinkedMap(ridership, lstations) {}
