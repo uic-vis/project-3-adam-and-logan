@@ -2,6 +2,7 @@
 
 const color_names = ["blue", "green", "yellow", "red", "orange", "brown", "purple", "pink"];
 const rgb_values = ["#00A1DE", "#009B3A", "#F9E300", "#C60C30", "#F9461C", "#62361B", "#522398", "#E27EA6"];
+const gray = "#565a5c"
 
 main();
 
@@ -11,15 +12,10 @@ async function main() {
 	const raillines = await fetchLocal('data/raillines.geojson', 'json');
 	const zipcodes = await fetchLocal('data/zipcodes.geojson', 'json');
 	const weather = await fetchLocal('data/weather.csv', 'csv');
-	console.log(ridership);
-	console.log(lstations);
-	console.log(raillines);
-	console.log(zipcodes);
-	console.log(weather);
 
 	drawHistogram(ridership);
 	drawLineChart(ridership);
-	drawMap();
+	drawMap(ridership, lstations, raillines, zipcodes);
 	drawLinkedMap();
 }
 
@@ -215,95 +211,250 @@ function Histogram(data, {
 }
 
 function drawLineChart(ridership) {
-	var chart = lineChart(ridership);
-	chart.update(ridership);
+	// set up
+	const margin = {top: 10, right: 20, bottom: 50, left: 100};
+	const visWidth = 1000;
+	const visHeight = 400;
+	const totalWidth = visWidth + margin.left + margin.right;
+	const totalHeight = visHeight + margin.top + margin.bottom
 
-	console.log(chart);
+	const svg = d3.select('#linechart-container')
+		.append('svg')
+		.attr('viewBox', `0 0 ${totalWidth} ${totalHeight}`);
+	
+	const g = svg.append('g')
+		.attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-	d3.select("#linechart-container")
-		.append(() => chart);
+	// create scales
+		var x = d3.scaleTime()
+		.domain(d3.extent(ridership, d => d.date))
+		.range([0, visWidth]);
+
+	const y = d3.scaleLinear()
+		.range([visHeight, 0]);
+
+	// create and add axes
+	const xAxis = d3.axisBottom(x);
+	const xAxisGroup = g.append("g")
+		.call(xAxis)
+		.attr("transform", `translate(0, ${visHeight})`);
+	xAxisGroup.append('text')
+		.attr('x', visWidth / 2)
+		.attr('y', 40)
+		.attr('fill', 'black')
+		.attr('text-anchor', 'middle')
+		.text('Date');
+
+	const yAxis = d3.axisLeft(y).tickSizeOuter(0);
+	const yAxisGroup = g.append("g")
+	yAxisGroup.append("text")
+		.attr("x", -visHeight / 2)
+		.attr("y", -70)
+		.attr("fill", "black")
+		.attr("text-anchor", "middle")
+		.attr('transform', 'rotate(-90)')
+		.text("Ridership Total");
+	
+	update(ridership);
+
+	function update(data) {
+		// get the number of rides for each month
+		const dailyCounts = d3.rollup(
+			data,
+			group => group.reduce((sum, item) => sum + item.rides, 0),
+			d => d.date.getFullYear() + '-' + ("0" + (d.date.getMonth() + 1)).slice(-2)
+		);
+
+		// update y scale
+		y.domain([0, d3.max(dailyCounts.values())]).nice()
+
+		// update y axis
+		const t = svg.transition()
+			.ease(d3.easeLinear)
+			.duration(200);
+
+		yAxisGroup
+			.transition(t)
+			.call(yAxis);
+
+		const parseTime = d3.timeParse("%Y-%m");
+
+		svg.append("path")
+			.datum(dailyCounts)
+			.attr("fill", "none")
+			.attr("stroke", "steelblue")
+			.attr("stroke-width", 1.5)
+			.attr(
+				"d",
+				d3.line().x(([date, count]) => x(parseTime(date)) + margin.left).y(([date, count]) => y(count) + margin.top)
+			)
+	}
 }
 
-function lineChart(ridership) {
-		// set up
-		const margin = {top: 10, right: 20, bottom: 50, left: 100};
-		const visWidth = 1000;
-		const visHeight = 400;
+function drawMap(ridership, lstations, raillines, zipcodes) {
+	const mapWidth = 600;
+	const mapHeight = 1000;
+
+	let interactiveMonth = document.getElementById("map-monthSlider").value
+  let interactiveYear = document.getElementById("map-yearSlider").value
+
+  var monthSlider = document.getElementById("map-monthSlider")
+  var yearSlider = document.getElementById("map-yearSlider")
+
+  var outputMonth = document.getElementById("map-month")
+  var outputYear = document.getElementById("map-year")
+
+  // draw map with initial values
+  updateSliderNum();
+  var svg = svgMap();
+	d3.select("#map-container").append(() => svg);
+  svg.updateRadius(interactiveMonth, interactiveYear);
+
+  // monthSlider on change
+  monthSlider.onchange = () => {
+    updateSliderNum();
+    svg.updateRadius(interactiveMonth, interactiveYear);
+  }
+
+  // yearSlider on change
+  yearSlider.onchange = () => {
+    updateSliderNum();
+		svg.updateRadius(interactiveMonth, interactiveYear);
+  }
+
+  function updateSliderNum() {
+    interactiveMonth = monthSlider.value
+    interactiveYear = yearSlider.value
+    
+    outputMonth.innerHTML = parseInt(monthSlider.value) + 1
+    outputYear.innerHTML = yearSlider.value
+  }
+
+	function svgMap() {
+		const projection = createProjection(mapWidth, mapHeight, lstations, zipcodes);
+
+		// create SVG
+		const svg = d3.create("svg")
+			.attr('width', mapWidth)
+			.attr('height', mapHeight)
+			.attr('id', 'content');
 	
-		const svg = d3.create('svg')
-			.attr('viewBox', `0 0 ${visWidth + margin.left + margin.right} ${visHeight + margin.top + margin.bottom}`);
-		// .attr('width', visWidth + margin.left + margin.right)
-		// .attr('height', visHeight + margin.top + margin.bottom);
+		const g = svg.append('g')
+			.attr('class', 'map');
 	
-		const g = svg.append("g")
-			.attr("transform", `translate(${margin.left}, ${margin.top})`);
+		addBoundaries(svg, projection, zipcodes);
+		addLines(svg, projection, raillines);
 	
-		// create scales
-		var x = d3.scaleTime()
-			.domain(d3.extent(ridership, d => d.date))
-			.range([0, visWidth]);
+		// add points
+		const dots = svg.select('#content g.map')
+			.selectAll('circle')
+			.data(lstations)
+			.join('circle')
+			.attr('cx', d => projection([d[1].longitude, d[1].latitude])[0])
+			.attr('cy', d => projection([d[1].longitude, d[1].latitude])[1])
+			.attr('fill', gray)
+			.attr('fill-opacity', 0.6)
+			.attr('stroke', 'black')
+			.attr('opacity', 0.4);
 	
-		const y = d3.scaleLinear()
-			.range([visHeight, 0]);
-	
-		// create and add axes
-		const xAxis = d3.axisBottom(x);
-		const xAxisGroup = g.append("g")
-			.call(xAxis)
-			.attr("transform", `translate(0, ${visHeight})`);
-		xAxisGroup.append('text')
-			.attr('x', visWidth / 2)
-			.attr('y', 40)
-			.attr('fill', 'black')
-			.attr('text-anchor', 'middle')
-			.text('Date');
-	
-		const yAxis = d3.axisLeft(y).tickSizeOuter(0);
-		const yAxisGroup = g.append("g")
-		yAxisGroup.append("text")
-			.attr("x", -visHeight / 2)
-			.attr("y", -70)
-			.attr("fill", "black")
-			.attr("text-anchor", "middle")
-			.attr('transform', 'rotate(-90)')
-			.text("Ridership Total");
-	
-		function update(data) {
-			// get the number of rides for each month
-			const dailyCounts = d3.rollup(
-				data,
+		function updateRadius(month, year) {
+			// update sums
+			var rides_sums = d3.rollup(
+				ridership.filter(item => item.date.getMonth() == month && item.date.getFullYear() == year),
 				group => group.reduce((sum, item) => sum + item.rides, 0),
-				d => d.date.getFullYear() + '-' + ("0" + (d.date.getMonth() + 1)).slice(-2)
-			);
+				d => d.station_id
+			)
 	
-			// update y scale
-			y.domain([0, d3.max(dailyCounts.values())]).nice()
+			// update scale
+			var radius_scale = d3.scaleSqrt()
+				.domain([Math.min(...rides_sums.values()), Math.max(...rides_sums.values())]).nice()
+				.range([1, 12]);
 	
-			// update y axis
-			const t = svg.transition()
-				.ease(d3.easeLinear)
-				.duration(200);
-	
-			yAxisGroup
-				.transition(t)
-				.call(yAxis);
-	
-			const parseTime = d3.timeParse("%Y-%m");
-	
-			svg.append("path")
-				.datum(dailyCounts)
-				.attr("fill", "none")
-				.attr("stroke", "steelblue")
-				.attr("stroke-width", 1.5)
-				.attr(
-					"d",
-					d3.line().x(([date, count]) => x(parseTime(date)) + margin.left).y(([date, count]) => y(count) + margin.top)
-				)
+			// change radius of dots using new sums and scale
+			dots.attr('r', d => radius_scale(rides_sums.get(d[1].station_id)));
 		}
 	
-		return Object.assign(svg.node(), { update });
+		return Object.assign(svg.node(), { updateRadius });
+	}
 }
 
-function drawMap(ridership, lstations) {}
+function drawLinkedMap() {}
 
-function drawLinkedMap(ridership, lstations) {}
+function createProjection(mapWidth, mapHeight, lstations, zipcodes) {
+  // center points: mean([min, max]) of possible longitude/latitude values
+  const arr_lstations = Array.from(lstations.values())
+  const flat_zipcodes = zipcodes.features.map( item => item.geometry.coordinates ).flat(3)
+  
+  var centerLon = d3.mean(
+    d3.extent(
+      d3.merge([
+        arr_lstations.map( item => item.longitude ),
+        flat_zipcodes.map( item => item[0] )
+      ])
+    ))
+  
+  var centerLat = d3.mean(
+    d3.extent(
+      d3.merge([
+        arr_lstations.map( item => item.latitude ),
+        flat_zipcodes.map( item => item[1] )
+      ])
+    ))
+
+  return d3.geoMercator()
+    .scale(mapWidth / 0.0028 / Math.PI)
+    .rotate([0, 0])
+    .center([centerLon, centerLat])
+    .translate([mapWidth / 2, mapHeight / 2])
+}
+
+function addBoundaries(svg, projection, zipcodes) {
+	const geoGenerator = d3.geoPath()
+  	.projection(projection);
+	
+  var g = svg.select('#content g.map')
+  .append('g')
+    .attr('id', 'zipcodes');
+  
+  let u = g.selectAll('path')
+    .data(zipcodes.features);
+
+  u.enter()
+    .append('path')
+    .attr('d', geoGenerator)
+    .attr('fill', '#fff')
+    .attr('stroke', '#555')
+    .attr('class', 'zipcode');
+}
+
+function addLines (svg, projection, raillines) {
+	const geoGenerator = d3.geoPath()
+		.projection(projection);
+
+  var legend_rgb = {
+    'RD': '#C60C30',
+    'BL': '#00A1DE',
+    'GR': '#009B3A',
+    'BR': '#62361B',
+    'PR': '#522398',
+    'YL': '#F9E300',
+    'PK': '#E27EA6',
+    'OR': '#F9461C',
+    'ML': '#000000'
+  }
+
+  let g = svg.select('#content g.map')
+    .append('g')
+    .attr('id', 'raillines');
+
+  let u = g.selectAll('path')
+    .data(raillines.features);
+
+  u.enter()
+    .append('path')
+    .attr('d', geoGenerator)
+    .attr('stroke', (d) => legend_rgb[d.properties.LEGEND])
+    .attr('fill', 'none')
+    .attr('stroke-width', '3px')
+    .attr('class', 'railline');
+}
