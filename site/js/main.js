@@ -85,7 +85,7 @@ async function loadRidership(lstations) {
 function drawHistogram(ridership) {
 	// constants
 	const width = 1000;
-	const height = 400;
+	const height = 500;
 
 	var ridershipHistogram = Histogram(
 		d3.rollup(
@@ -104,7 +104,6 @@ function drawHistogram(ridership) {
 
 	d3.select("#hist-container")
 		.append(() => ridershipHistogram)
-		.attr('viewBox', `0 0 ${width} ${height}`)
 		.attr('class', 'svg-item');
 }
 
@@ -214,13 +213,16 @@ function drawLineChart(ridership) {
 	// set up
 	const margin = {top: 10, right: 20, bottom: 50, left: 100};
 	const visWidth = 1000;
-	const visHeight = 400;
+	const visHeight = 500;
 	const totalWidth = visWidth + margin.left + margin.right;
 	const totalHeight = visHeight + margin.top + margin.bottom
 
 	const svg = d3.select('#linechart-container')
 		.append('svg')
-		.attr('viewBox', `0 0 ${totalWidth} ${totalHeight}`);
+		.attr('width', totalWidth)
+		.attr('height', totalHeight)
+		.attr('viewBox', [0, 0, totalWidth, totalHeight])
+		.attr("style", "max-width: 100%; height: auto; height: intrinsic;");
 	
 	const g = svg.append('g')
 		.attr("transform", `translate(${margin.left}, ${margin.top})`);
@@ -292,8 +294,8 @@ function drawLineChart(ridership) {
 }
 
 function drawMap(ridership, lstations, raillines, zipcodes) {
-	const mapWidth = 600;
-	const mapHeight = 1000;
+	const mapWidth = 500;
+	const mapHeight = 650;
 
 	let interactiveMonth = document.getElementById("map-monthSlider").value
   let interactiveYear = document.getElementById("map-yearSlider").value
@@ -337,6 +339,8 @@ function drawMap(ridership, lstations, raillines, zipcodes) {
 		const svg = d3.create("svg")
 			.attr('width', mapWidth)
 			.attr('height', mapHeight)
+			.attr('viewBox', [0, 0, mapWidth, mapHeight])
+			.attr("style", "max-width: 100%; height: auto; height: intrinsic;")
 			.attr('id', 'content');
 	
 		const g = svg.append('g')
