@@ -19,3 +19,9 @@ svg {
 	padding-left: 20em;
 	padding-right: 20em;
 }
+
+#linkedchart-container {
+	display: flex;
+	padding-left: 10em;
+	padding-right: 10em;
+}

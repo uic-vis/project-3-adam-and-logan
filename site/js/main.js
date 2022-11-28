@@ -9,14 +9,15 @@ main();
 async function main() {
 	const lstations = await loadLstations();
 	const ridership = await loadRidership(lstations);
-	const raillines = await fetchLocal('data/raillines.geojson', 'json');
-	const zipcodes = await fetchLocal('data/zipcodes.geojson', 'json');
-	const weather = await fetchLocal('data/weather.csv', 'csv');
+	// const raillines = await fetchLocal('data/raillines.geojson', 'json');
+	// const zipcodes = await fetchLocal('data/zipcodes.geojson', 'json');
+	const weather = await loadWeather();
 
-	drawHistogram(ridership);
-	drawLineChart(ridership);
-	drawMap(ridership, lstations, raillines, zipcodes);
-	drawLinkedMap(ridership, lstations, raillines, zipcodes);
+	// drawHistogram(ridership);
+	// drawLineChart(ridership);
+	// drawMap(ridership, lstations, raillines, zipcodes);
+	// drawLinkedMap(ridership, lstations, raillines, zipcodes);
+	drawLinkedChart(weather, ridership, lstations);
 }
 
 async function fetchURL(url) {
@@ -703,18 +704,33 @@ function addLines(svg, projection, raillines) {
 		.attr('class', 'railline');
 }
 
-function drawLinkedChart(weather) {
+function drawLinkedChart(weather, ridership, lstations) {
 	var svgWeather = brushableLineChart();
-	// var svgRidership = multipleLineChart();
+	var svgRidership = multipleLineChart();
 
 	d3.select("#linkedchart-container").append(() => svgWeather);
-	// d3.select("#linkedchart-container").append(() => svgRidership);
+	d3.select("#linkedchart-container").append(() => svgRidership);
+
+	// update the line chart when the weather selection changes
+	d3.select(svgWeather).on('input', () => {
+		console.log(svgWeather.value);
+
+		// map.value: list of station_ids that are selected
+		if (svgWeather.value == null) {
+			svgRidership.update(null);
+		} else {
+			svgRidership.update( ridership.filter(d => {
+				return d.date > svgWeather.value[0]
+					&& d.date < svgWeather.value[1]
+			}) )
+		}
+	});
 
 	function brushableLineChart() {
 		// setup
 		const margin = { top: 10, right: 20, bottom: 50, left: 100 };
-		const visWidth = 1000;
-		const visHeight = 500;
+		const visWidth = 600;
+		const visHeight = 400;
 		const totalWidth = visWidth + margin.left + margin.right;
 		const totalHeight = visHeight + margin.top + margin.bottom
 
@@ -776,12 +792,153 @@ function drawLinkedChart(weather) {
 		const brush = d3.brush()
 			.extent([[0, 0], [visWidth, visHeight]])
 			// .on("brush", onBrush)
-			// .on("end", endBrush);
+			.on("end", endBrush);
 
 		g.append('g')
 			.attr('id', 'brush_g')
 			.call(brush);
-		
+
+		// function onBrush(event) {
+		// 	// return true if the dot is in the brush box, false otherwise
+		// 	function isBrushed(d) {
+		// 		const cx = x(d.date);
+		// 		const cy = y(d.temp);
+		// 		return cx >= x1 && cx <= x2 && cy >= y1 && cy <= y2;
+		// 	}
+
+		// 	const [[x1, y1], [x2, y2]] = event.selection;
+		// 	const brushed = weather.filter(isBrushed);
+
+		// 	if (brushed.length) {
+		// 		svg.property('value', d3.extent(brushed, d => d.date))
+		// 			.dispatch('input');
+		// 	}
+		// }
+
+		function endBrush(event) {
+			if (event.selection == null) {
+				// send data to bar chart
+				svg.property('value', null).dispatch('input');
+			}
+
+			// return true if the dot is in the brush box, false otherwise
+			function isBrushed(d) {
+				const cx = x(d.date);
+				const cy = y(d.temp);
+				return cx >= x1 && cx <= x2 && cy >= y1 && cy <= y2;
+			}
+
+			const [[x1, y1], [x2, y2]] = event.selection;
+			const brushed = weather.filter(isBrushed);
+
+			if (brushed.length) {
+				svg.property('value', d3.extent(brushed, d => d.date))
+					.dispatch('input');
+			}
+
+		}
+
 		return svg.node();
+	}
+
+	function multipleLineChart() {
+		// set up
+		const margin = { top: 10, right: 20, bottom: 50, left: 100 };
+		const visWidth = 600;
+		const visHeight = 400;
+		const totalWidth = visWidth + margin.left + margin.right;
+		const totalHeight = visHeight + margin.top + margin.bottom
+
+		const svg = d3.create('svg')
+			.attr('width', totalWidth)
+			.attr('height', totalHeight)
+			.attr('viewBox', [0, 0, totalWidth, totalHeight])
+			.attr("style", "max-width: 100%; height: auto; height: intrinsic;");
+
+		const g = svg.append('g')
+			.attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+		// create scales
+		var x = d3.scaleTime()
+			.domain(d3.extent(ridership, d => d.date))
+			.range([0, visWidth]);
+
+		const y = d3.scaleLinear()
+			.range([visHeight, 0]);
+
+		// create and add axes
+		const xAxis = d3.axisBottom(x);
+		const xAxisGroup = g.append("g")
+			.call(xAxis)
+			.attr("transform", `translate(0, ${visHeight})`);
+		xAxisGroup.append('text')
+			.attr('x', visWidth / 2)
+			.attr('y', 40)
+			.attr('fill', 'black')
+			.attr('text-anchor', 'middle')
+			.text('Date');
+
+		const yAxis = d3.axisLeft(y).tickSizeOuter(0);
+		const yAxisGroup = g.append("g");
+		yAxisGroup.append("text")
+			.attr("x", -visHeight / 2)
+			.attr("y", -70)
+			.attr("fill", "black")
+			.attr("text-anchor", "middle")
+			.attr('transform', 'rotate(-90)')
+			.text("Ridership Total");
+
+		update(ridership);
+
+		function update(data) {
+			if (data == null) {
+				data = ridership;
+			}
+
+			// get the number of rides for each month
+			const dailyCounts = d3.rollup(
+				data,
+				group => group.reduce((sum, item) => sum + item.rides, 0),
+				d => d.date.getFullYear() + '-' + ("0" + (d.date.getMonth() + 1)).slice(-2)
+			);
+
+			// update x scale
+			x.domain(d3.extent(data, d => d.date));
+
+			// update x axis
+			const t = svg.transition()
+				.ease(d3.easeLinear)
+				.duration(200);
+			
+			xAxisGroup
+				.transition(t)
+				.call(xAxis)
+
+			// update y scale
+			y.domain([0, d3.max(dailyCounts.values())]).nice()
+
+			// update y axis
+			yAxisGroup
+				.transition(t)
+				.call(yAxis);
+
+			const parseTime = d3.timeParse("%Y-%m");
+
+			svg.selectAll(".line").remove();
+
+			svg.append("path")
+				.datum(dailyCounts)
+				.attr("fill", "none")
+				.attr("stroke", "steelblue")
+				.attr("stroke-width", 1.5)
+				.attr("class", "line")
+				.attr(
+					"d",
+					d3.line()
+						.x(([date, count]) => x(parseTime(date)) + margin.left)
+						.y(([date, count]) => y(count) + margin.top)
+				)
+		}
+		return Object.assign(svg.node(), { update });
 	}
 }
