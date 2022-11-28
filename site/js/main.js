@@ -16,7 +16,7 @@ async function main() {
 	drawHistogram(ridership);
 	drawLineChart(ridership);
 	drawMap(ridership, lstations, raillines, zipcodes);
-	drawLinkedMap();
+	drawLinkedMap(ridership, lstations, raillines, zipcodes);
 }
 
 async function fetchURL(url) {
@@ -294,8 +294,7 @@ function drawLineChart(ridership) {
 }
 
 function drawMap(ridership, lstations, raillines, zipcodes) {
-	const mapWidth = 500;
-	const mapHeight = 650;
+	
 
 	let interactiveMonth = document.getElementById("map-monthSlider").value
   let interactiveYear = document.getElementById("map-yearSlider").value
@@ -333,6 +332,7 @@ function drawMap(ridership, lstations, raillines, zipcodes) {
   }
 
 	function svgMap() {
+		const mapWidth = 500, mapHeight = 650;
 		const projection = createProjection(mapWidth, mapHeight, lstations, zipcodes);
 
 		// create SVG
@@ -382,7 +382,237 @@ function drawMap(ridership, lstations, raillines, zipcodes) {
 	}
 }
 
-function drawLinkedMap() {}
+function drawLinkedMap(ridership, lstations, raillines, zipcodes) {
+	var svgMap = brushableMap();
+	var svgBar = barChartStations();
+
+	d3.select("#linkedmap-container").append(() => svgMap);
+	d3.select("#linkedmap-container").append(() => svgBar);
+
+	var interactiveYear = document.getElementById("inter-yearSlider").value
+	var yearSlider = document.getElementById("inter-yearSlider")
+	var outputYear = document.getElementById("inter-year")
+
+	// update the bar chart when the map selection changes
+	d3.select(svgMap).on('input', () => {
+		// map.value: list of station_ids that are selected
+		if (svgMap.value == null) {
+			svgBar.update(null);
+		} else {
+			svgBar.update( data.filter(d => svgMap.value.includes(d.station_id)) );
+		}
+	});
+
+	updateSliderNum();
+	var data = station_totals(interactiveYear);
+	svgMap.update(data);
+
+	// yearSlider on change
+	yearSlider.onchange = () => {
+		updateSliderNum()
+		interactiveYear = yearSlider.value
+		data = station_totals(interactiveYear);
+		svgMap.update(data);    
+	}
+
+	function updateSliderNum() {
+		outputYear.innerHTML = yearSlider.value
+	}
+
+	function station_totals(year = null) {
+		return Array.from(
+			d3.rollup(
+				!(year >= 2001 && year <= 2022) ? ridership : ridership.filter(d => d.date.getFullYear() == year),
+				group => group.reduce((sum, item) => sum + item.rides, 0),
+				d => d.station_id
+			)
+		).map(([i, s]) => ({station_id: i, sum: s}))
+			.sort((a, b) => a.station_id - b.station_id)
+	}
+
+	function brushableMap() {
+		// variables
+		const mapWidth = 600, mapHeight = 750;
+
+		const projection = createProjection(mapWidth, mapHeight, lstations, zipcodes);
+	
+		const station_ids = Array.from(lstations.values()).map( d => ({station_id: d.station_id}) )
+	
+		// create SVG
+		const svg = d3.create("svg")
+			.attr('width', mapWidth)
+			.attr('height', mapHeight)
+			.attr('viewBox', [0, 0, mapWidth, mapHeight])
+			.attr("style", "max-width: 100%; height: auto; height: intrinsic;")
+			.attr('id', 'content');
+	
+		const g = svg.append('g')
+			.attr('class', 'map')
+			// .attr('transform', `translate(${margin.left}, ${margin.top})`);
+	
+		addBoundaries(svg, projection, zipcodes);
+		addLines(svg, projection, raillines);
+	
+		function update(data) {
+			// update scale
+			const radius_scale = d3.scaleSqrt()
+				.domain([0, d3.max(data, d => d.sum)]).nice()
+				.range([1, 12]);
+	
+			// draw circles
+			svg.select('#content g.map')
+				.selectAll('circle')
+				.data(data)
+				.join('circle')
+				.attr('cx', d => getCoords(d.station_id)[0])
+				.attr('cy', d => getCoords(d.station_id)[1])
+				.attr('r', d => radius_scale(d.sum))
+				.attr('fill', gray)
+				.attr('fill-opacity', 0.6)
+				.attr('stroke', 'black')
+				.attr('opacity', 0.4);
+		}
+	
+		// brush
+		const brush = d3.brush()
+			.extent([[0, 0], [mapWidth, mapHeight]])
+			.on("brush", onBrush)
+			.on("end", endBrush);
+	
+		g.append('g')
+			.attr('id', 'brush_g')
+			.call(brush);
+	
+		function onBrush(event) {
+			const [[x1, y1], [x2, y2]] = event.selection;
+	
+			// return true if the dot is in the brush box, false otherwise
+			function isBrushed(d) {
+				const [cx, cy] = getCoords(d.station_id);
+				return cx >= x1 && cx <= x2 && cy >= y1 && cy <= y2;
+			}
+	
+			// style the dots
+			svg.select('#content g.map')
+				.selectAll('circle')
+				.attr('fill-opacity', d => isBrushed(d) ? 0.6 : 0.1)
+				.attr('opacity', d => isBrushed(d) ? 0.4 : 0.1);
+	
+			svg.property('value', station_ids.filter(isBrushed).map(d => d.station_id)).dispatch('input');
+		}
+	
+		function endBrush(event) {
+			if (event.selection == null) {
+				svg.select('#content g.map')
+					.selectAll('circle')
+					.attr('fill', gray)
+					.attr('fill-opacity', 0.6)
+					.attr('stroke', 'black')
+					.attr('opacity', 0.4);
+	
+				// send data to bar chart
+				svg.property('value', null).dispatch('input');
+			}
+		}
+	
+		return Object.assign(svg.node(), { update });
+
+		function getCoords(id) {
+			return projection(
+				[lstations.get(id).longitude, lstations.get(id).latitude]
+			);
+		}
+	}
+
+	function barChartStations() {
+		// set up
+		const visWidth = 500, visHeight = 650;
+		const margin = {top: 0, right: 30, bottom: 50, left: 150};
+		const totalWidth = visWidth + margin.left + margin.right;
+		const totalHeight = visHeight + margin.top + margin.bottom;
+	
+		const svg = d3.create('svg')
+			.attr('width', totalWidth)
+			.attr('height', totalHeight)
+			.attr('viewBox', [0, 0, totalWidth, totalHeight])
+			.attr("style", "max-width: 100%; height: auto; height: intrinsic;");
+	
+		const g = svg.append("g")
+			.attr("transform", `translate(${margin.left}, ${margin.top})`);
+	
+		// create scales
+		const x = d3.scaleLinear()
+			.range([0, visWidth]);
+	
+		var station_names = Array.from(lstations.values()).map( item => item.station_name )
+		const y = d3.scaleBand()
+			.domain(station_names)
+			.range([0, visHeight])
+			.padding(0.2);
+	
+		// create and add axes
+		const xAxis = d3.axisBottom(x).tickSizeOuter(0);
+		const xAxisGroup = g.append("g")
+			.attr("transform", `translate(0, ${visHeight})`);
+		xAxisGroup.append("text")
+			.attr("x", visWidth / 2)
+			.attr("y", 40)
+			.attr("fill", gray)
+			.attr("text-anchor", "middle")
+			.text("Total Ridership");
+	
+		const yAxis = d3.axisLeft(y);
+		const yAxisGroup = g.append("g")
+			// remove baseline from the axis
+			.call(g => g.select(".domain").remove())
+	
+		let barsGroup = g.append("g");
+	
+		function update(data) {
+			if (data == null) {
+				barsGroup.selectAll('rect').remove();
+	
+				// clear x
+			x.domain([]);
+				xAxisGroup.call(xAxis);
+				
+				// clear y
+				y.domain([]);
+				yAxisGroup.call(yAxis)
+					.call(g => g.select(".domain").remove());
+				
+				return;
+			}
+	
+			// update x 
+			x.domain([0, d3.max(data, d => d.sum)]).nice()
+			const t = svg.transition()
+				.ease(d3.easeLinear)
+				.duration(200);
+			xAxisGroup
+				.transition(t)
+				.call(xAxis);
+	
+			// update y
+			y.domain(data.map(d => lstations.get(d.station_id).station_name))
+			yAxisGroup.call(yAxis)
+				.call(g => g.select(".domain").remove());
+	
+			// draw bars
+			barsGroup.selectAll("rect")
+				.data(data, d => lstations.get(d.station_id).station_name)
+				.join("rect")
+				.attr("fill", "#565a5c")
+				.attr("height", y.bandwidth())
+				.attr("x", 0)
+				.attr("y", d => y(lstations.get(d.station_id).station_name))
+				.transition(t)
+				.attr("width", d => x(d.sum))    
+		}
+	
+		return Object.assign(svg.node(), { update });
+	}
+}
 
 function createProjection(mapWidth, mapHeight, lstations, zipcodes) {
   // center points: mean([min, max]) of possible longitude/latitude values
