@@ -5,6 +5,8 @@
 
 .vis {
 	border-style: dashed;
+	border-width: 0.1em;
+	padding: 1em;
 }
 
 svg {
