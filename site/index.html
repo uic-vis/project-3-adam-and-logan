@@ -1,62 +1,110 @@
 <!DOCTYPE html>
-<html lang='en'>
-	<head>
-		<title>CTA 'L' Ridership</title>
-		<link rel='stylesheet' href='css/styles.css'>
-		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-		<link rel="manifest" href="/site.webmanifest">
-		<script src='js/d3.v7.min.js'></script>
-		<script src='js/main.js'></script>
-	</head>
+<html lang="en">
+  <head>
+    <title>CTA 'L' Ridership</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <!-- <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"> -->
+    <!-- <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"> -->
+    <!-- <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"> -->
+    <!-- <link rel="manifest" href="/site.webmanifest"> -->
+    <script src="js/d3.v7.min.js"></script>
+    <script src="js/main.js"></script>
+  </head>
 
-	<body>
-		<div id='header'>
-			<h1>CTA 'L' Ridership Data</h1>
+  <body>
+    <div id="header">
+      <h1>CTA 'L' Ridership Data</h1>
 			<p>CS 424: Project 3</p>
 			<p>Adam Beigel and Logan Stein</p>
-		</div>
-		
-		<h2>Average Daily Ridership</h2>
-		<h4>Static view from Project 2</h4>
-		<p>Histogram frequency represents the number of stations with the corresponding average daily ridership in 2019.</p>
-		<div id='hist-container' class='vis'></div>
-		<p>Most stations have an average daily ridership between 500 and 3500.</p>
-		
-		<h2>Ridership by Year</h2>
-		<h4>Static view from Project 2</h4>
-		<p>We see the steep drop in ridership at the beginning of 2020 corresponding with the start of the COVID-19 pandemic.</p>
-		<div id='linechart-container' class='vis'></div>
+    </div>
 
-		<h2>Ridership by Line</h2>
+    <h2>Average Daily Ridership</h2>
+		<h4>Static view from Project 2</h4>
+    <p>
+      Histogram frequency represents the number of stations with the
+      corresponding average daily ridership for the entire span of data.
+    </p>
+    <div id="hist-container" class="vis"></div>
+    <p>Most stations have an average daily ridership between 500 and 3500.</p>
+
+    <h2>Ridership by Year</h2>
+		<h4>Static view from Project 2</h4>
+    <p>
+      We see the steep drop in ridership at the beginning of 2020 corresponding
+      with the start of the COVID-19 pandemic.
+    </p>
+    <div id="linechart-container" class="vis"></div>
+
+    <h2>Ridership by Line</h2>
 		<h4>Interactive view from Project 2</h4>
-		<div id='barchart' class='vis'></div>
+    <div id="barchart" class="vis"></div>
+    <div id="slider-container">
+      Year: <span id="year"></span>
+      <input
+        id="yearSlider"
+        type="range"
+        min="2001"
+        max="2022"
+        step="1"
+        value="2015"
+      />
+      Month: <span id="month"></span>
+      <input
+        id="monthSlider"
+        type="range"
+        min="0"
+        max="11"
+        step="1"
+        value="1"
+      />
+      <!--   <p id="selectorYear"></p> -->
+    </div>
 
-		<h2>Mapping Stations</h2>
+    <h2>Mapping Stations</h2>
 		<h4>Interactive spatial view from Project 2</h4>
-		<div id='map-container' class='vis'></div>
-		<div id="map-slider-container">
-			Year: <span id="map-year"></span>
-			<input id="map-yearSlider" type="range" min=2001 max=2022 step=1 value=2015 />
-			Month: <span id="map-month"></span>
-			<input id="map-monthSlider" type="range" min=0 max=11 step=1 value=1 />
-		</div>
+    <div id="map-container" class="vis"></div>
+    <div id="map-slider-container">
+      Year: <span id="map-year"></span>
+      <input
+        id="map-yearSlider"
+        type="range"
+        min="2001"
+        max="2022"
+        step="1"
+        value="2015"
+      />
+      Month: <span id="map-month"></span>
+      <input
+        id="map-monthSlider"
+        type="range"
+        min="0"
+        max="11"
+        step="1"
+        value="1"
+      />
+    </div>
 
-		<h2>Station Detail</h2>
+    <h2>Station Detail</h2>
 		<h4>Interactive linked spatial view from Project 2</h4>
-		<div id='linkedmap-container' class='vis'></div>
-		<div id="inter-slider-container">
-			Year: <span id="inter-year"></span>
-			<input id="inter-yearSlider" type="range" min=2001 max=2022 step=1 value=2021 />
-		</div>
+    <div id="linkedmap-container" class="vis"></div>
+    <div id="inter-slider-container">
+      Year: <span id="inter-year"></span>
+      <input
+        id="inter-yearSlider"
+        type="range"
+        min="2001"
+        max="2022"
+        step="1"
+        value="2021"
+      />
+    </div>
 
-		<h2>Weather vs. Ridership</h2>
+    <h2>Weather vs. Ridership</h2>
 		<h4>Interactive linked view</h4>
-		<div id="linkedchart-container" class="vis"></div>
+    <div id="linkedchart-container" class="vis"></div>
 
-		<h2>Other more different Weather vs. Ridership</h2>
+    <h2>Other more different Weather vs. Ridership</h2>
 		<h4>Interactive view</h4>
-		<div id="-container" class="vis"></div>
-	</body>
+    <div id="-container" class="vis"></div>
+  </body>
 </html>
