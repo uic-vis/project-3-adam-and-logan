@@ -14,21 +14,27 @@
 	<body>
 		<div id='header'>
 			<h1>CTA 'L' Ridership Data</h1>
+			<p>CS 424: Project 3</p>
+			<p>Adam Beigel and Logan Stein</p>
 		</div>
 		
 		<h2>Average Daily Ridership</h2>
+		<h4>Static view from Project 2</h4>
 		<p>Histogram frequency represents the number of stations with the corresponding average daily ridership in 2019.</p>
 		<div id='hist-container' class='vis'></div>
 		<p>Most stations have an average daily ridership between 500 and 3500.</p>
 		
 		<h2>Ridership by Year</h2>
+		<h4>Static view from Project 2</h4>
 		<p>We see the steep drop in ridership at the beginning of 2020 corresponding with the start of the COVID-19 pandemic.</p>
 		<div id='linechart-container' class='vis'></div>
 
 		<h2>Ridership by Line</h2>
+		<h4>Interactive view from Project 2</h4>
 		<div id='barchart' class='vis'></div>
 
 		<h2>Mapping Stations</h2>
+		<h4>Interactive spatial view from Project 2</h4>
 		<div id='map-container' class='vis'></div>
 		<div id="map-slider-container">
 			Year: <span id="map-year"></span>
@@ -38,16 +44,19 @@
 		</div>
 
 		<h2>Station Detail</h2>
+		<h4>Interactive linked spatial view from Project 2</h4>
 		<div id='linkedmap-container' class='vis'></div>
 		<div id="inter-slider-container">
 			Year: <span id="inter-year"></span>
 			<input id="inter-yearSlider" type="range" min=2001 max=2022 step=1 value=2021 />
 		</div>
 
-		<h2>Multiple Linked View</h2>
+		<h2>Weather vs. Ridership</h2>
+		<h4>Interactive linked view</h4>
 		<div id="linkedchart-container" class="vis"></div>
 
-		<h2>New Spatial View</h2>
-		<div id="spatial-container" class="vis"></div>
+		<h2>Other more different Weather vs. Ridership</h2>
+		<h4>Interactive view</h4>
+		<div id="-container" class="vis"></div>
 	</body>
 </html>
