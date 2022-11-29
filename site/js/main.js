@@ -729,8 +729,8 @@ function drawLinkedChart(weather, ridership, lstations) {
 	function brushableLineChart() {
 		// setup
 		const margin = { top: 10, right: 20, bottom: 50, left: 100 };
-		const visWidth = 600;
-		const visHeight = 400;
+		const visWidth = 1000;
+		const visHeight = 100;
 		const totalWidth = visWidth + margin.left + margin.right;
 		const totalHeight = visHeight + margin.top + margin.bottom
 
@@ -819,6 +819,7 @@ function drawLinkedChart(weather, ridership, lstations) {
 			if (event.selection == null) {
 				// send data to bar chart
 				svg.property('value', null).dispatch('input');
+				return;
 			}
 
 			// return true if the dot is in the brush box, false otherwise
@@ -844,8 +845,8 @@ function drawLinkedChart(weather, ridership, lstations) {
 	function multipleLineChart() {
 		// set up
 		const margin = { top: 10, right: 20, bottom: 50, left: 100 };
-		const visWidth = 600;
-		const visHeight = 400;
+		const visWidth = 1000;
+		const visHeight = 600;
 		const totalWidth = visWidth + margin.left + margin.right;
 		const totalHeight = visHeight + margin.top + margin.bottom
 
@@ -888,11 +889,13 @@ function drawLinkedChart(weather, ridership, lstations) {
 			.attr('transform', 'rotate(-90)')
 			.text("Ridership Total");
 
-		update(ridership);
+		update(null);
 
 		function update(data) {
+			var updateY = false;
 			if (data == null) {
 				data = ridership;
+				updateY = true;
 			}
 
 			// get the number of rides for each month
@@ -903,7 +906,7 @@ function drawLinkedChart(weather, ridership, lstations) {
 			);
 
 			// update x scale
-			x.domain(d3.extent(data, d => d.date));
+			x.domain(d3.extent(data, d => d.date)).nice();
 
 			// update x axis
 			const t = svg.transition()
@@ -912,15 +915,17 @@ function drawLinkedChart(weather, ridership, lstations) {
 			
 			xAxisGroup
 				.transition(t)
-				.call(xAxis)
+				.call(xAxis);
 
+			if (updateY) {
 			// update y scale
-			y.domain([0, d3.max(dailyCounts.values())]).nice()
+				y.domain([0, d3.max(dailyCounts.values())]).nice();
 
 			// update y axis
 			yAxisGroup
 				.transition(t)
 				.call(yAxis);
+			}
 
 			const parseTime = d3.timeParse("%Y-%m");
 
