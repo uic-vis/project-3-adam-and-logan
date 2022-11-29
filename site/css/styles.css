@@ -42,7 +42,7 @@ svg {
 }
 
 #linkedchart-container {
-  display: flex;
+  /* display: flex; */
   padding-left: 10em;
   padding-right: 10em;
 }
