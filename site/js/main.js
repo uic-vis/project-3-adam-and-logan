@@ -1,150 +1,314 @@
 // loading data, drawing charts
 
-const color_names = ["blue", "green", "yellow", "red", "orange", "brown", "purple", "pink"];
-const rgb_values = ["#00A1DE", "#009B3A", "#F9E300", "#C60C30", "#F9461C", "#62361B", "#522398", "#E27EA6"];
+const color_names = [
+  "blue",
+  "green",
+  "yellow",
+  "red",
+  "orange",
+  "brown",
+  "purple",
+  "pink",
+];
+const rgb_values = [
+  "#00A1DE",
+  "#009B3A",
+  "#F9E300",
+  "#C60C30",
+  "#F9461C",
+  "#62361B",
+  "#522398",
+  "#E27EA6",
+];
 
 main();
 
 async function main() {
-	const lstations = await loadLstations();
-	const ridership = await loadRidership(lstations);
-	console.log(ridership);
-	console.log(lstations);
+  const lstations = await loadLstations();
+  const ridership = await loadRidership(lstations);
 
-	drawHistogram(ridership);
-	drawLineChart(ridership);
+  bars(ridership);
+  drawHistogram(ridership);
+  drawLineChart(ridership);
+}
+
+function barChartLines() {
+  // set up
+  const visWidth = 800;
+  const visHeight = 400;
+  const margin = { top: 10, right: 20, bottom: 50, left: 50 };
+
+  const svg = d3.create("svg").attr("width", "80%").attr("height", "50vh");
+
+  const g = svg
+    .append("g")
+    .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+  // create scales
+  const x = d3.scaleLinear().range([0, visWidth]);
+
+  let lineColor = d3.scaleOrdinal().domain(color_names).range(rgb_values);
+
+  const y = d3
+    .scaleBand()
+    .domain(color_names)
+    .range([0, visHeight])
+    .padding(0.2);
+
+  // create and add axes
+  const xAxis = d3.axisBottom(x).tickSizeOuter(0);
+  const xAxisGroup = g
+    .append("g")
+    .attr("transform", `translate(0, ${visHeight})`);
+  xAxisGroup
+    .append("text")
+    .attr("x", visWidth / 2)
+    .attr("y", 40)
+    .attr("fill", "black")
+    .attr("text-anchor", "middle")
+    .text("Total Ridership");
+
+  const yAxis = d3.axisLeft(y);
+  const yAxisGroup = g
+    .append("g")
+    .call(yAxis)
+    // remove baseline from the axis
+    .call((g) => g.select(".domain").remove());
+
+  let barsGroup = g.append("g");
+
+  function update(month, year, ridership) {
+    // something is causing ridership to not have .filter method
+    console.log(
+      "filtered Ridership: ",
+      ridership.filter(
+        (item) =>
+          item.date.getMonth() == month && item.date.getFullYear() == year
+      )
+    );
+    const data = ridership.filter(
+      (item) => item.date.getMonth() == month && item.date.getFullYear() == year
+    );
+
+    // update sums
+    var lineCounts = new Map();
+    for (let i = 0; i < color_names.length; i++) {
+      lineCounts.set(
+        color_names[i],
+        d3.sum(data, (d) => d[color_names[i]])
+      );
+    }
+
+    // update x scale
+    x.domain([0, d3.max(lineCounts.values())]).nice();
+
+    // update x axis
+    const t = svg.transition().ease(d3.easeLinear).duration(200);
+
+    xAxisGroup.transition(t).call(xAxis);
+
+    // draw bars
+    barsGroup
+      .selectAll("rect")
+      .data(lineCounts, ([line, count]) => line)
+      .join("rect")
+      .attr("fill", ([line, count]) => lineColor(line))
+      .attr("height", y.bandwidth())
+      .attr("x", 0)
+      .attr("y", ([line, count]) => y(line))
+      .transition(t)
+      .attr("width", ([line, count]) => x(count));
+  }
+
+  return Object.assign(svg.node(), { update });
+}
+
+function bars(ridership) {
+  let width = 400;
+  let height = 600;
+  let interactiveMonth = document.getElementById("monthSlider").value;
+  let interactiveYear = document.getElementById("yearSlider").value;
+
+  var monthSlider = document.getElementById("monthSlider");
+  var yearSlider = document.getElementById("yearSlider");
+
+  var outputMonth = document.getElementById("month");
+  var outputYear = document.getElementById("year");
+
+  // show initial values
+  outputMonth.innerHTML = parseInt(monthSlider.value) + 1;
+  interactiveMonth = monthSlider.value;
+  outputYear.innerHTML = yearSlider.value;
+  interactiveYear = yearSlider.value;
+
+  const bar = barChartLines();
+  bar.update(interactiveMonth, interactiveYear, ridership);
+
+  monthSlider.onchange = () => {
+    outputMonth.innerHTML = parseInt(monthSlider.value) + 1;
+    interactiveMonth = monthSlider.value;
+    bar.update(interactiveMonth, interactiveYear, ridership);
+  };
+
+  yearSlider.onchange = () => {
+    outputYear.innerHTML = yearSlider.value;
+    interactiveYear = yearSlider.value;
+    bar.update(interactiveMonth, interactiveYear, ridership);
+  };
+
+  d3.select("#barchart")
+    .append(() => bar)
+    .attr("viewbox", `0 0 1px 0`)
+    .attr("class", "svg-item");
+  return bar;
 }
 
 async function fetchURL(url) {
-	console.log("fetching from URL...")
-	const data = await fetch(url)
-		.then(res => res.json())
-		.catch(err => { throw err; });
-	return data;
+  console.log("fetching from URL...");
+  const data = await fetch(url)
+    .then((res) => res.json())
+    .catch((err) => {
+      throw err;
+    });
+  return data;
 }
 
 function fetchLocal(filepath, type) {
-	console.log("fetching from filepath...")
-	if (type == 'csv') {
-		return d3.csv(filepath, d3.autoType);
-	} else if (type == 'json') {
-		return d3.json(filepath);
-	}
+  console.log("fetching from filepath...");
+  if (type == "csv") {
+    return d3.csv(filepath, d3.autoType);
+  } else if (type == "json") {
+    return d3.json(filepath);
+  }
 }
 
 async function loadLstations() {
-	const raw = await fetchLocal('data/lstations.csv', 'csv');
-	const arr = raw.map( ({geometry, ...item}) => ({
-		station_id: item.STATION_ID,
-		station_name: item.STATION_NAME,
-		ada: item.ADA == "True",
-		red: item.RED == "True",
-		blue: item.BLUE == "True",
-		green: item.GREEN == "True",
-		brown: item.BROWN == "True",
-		purple: item.PURPLE == "True",
-		yellow: item.YELLOW == "True",
-		pink: item.PINK == "True",
-		orange: item.ORANGE == "True",
-		longitude: item.LONGITUDE,
-		latitude: item.LATITUDE
-	}) );
+  const raw = await fetchLocal("data/lstations.csv", "csv");
+  const arr = raw.map(({ geometry, ...item }) => ({
+    station_id: item.STATION_ID,
+    station_name: item.STATION_NAME,
+    ada: item.ADA == "True",
+    red: item.RED == "True",
+    blue: item.BLUE == "True",
+    green: item.GREEN == "True",
+    brown: item.BROWN == "True",
+    purple: item.PURPLE == "True",
+    yellow: item.YELLOW == "True",
+    pink: item.PINK == "True",
+    orange: item.ORANGE == "True",
+    longitude: item.LONGITUDE,
+    latitude: item.LATITUDE,
+  }));
 
-	return new Map( arr.map(item => [item.station_id, {...item}]) );
+  return new Map(arr.map((item) => [item.station_id, { ...item }]));
 }
 
 async function loadRidership(lstations) {
-	const raw = await fetchLocal('data/ridership.csv', 'csv');
-	const parseTime = d3.timeParse("%m/%d/%Y");
-	return raw.map( item => {
-		const station = lstations.get(item.station_id);
-		const num = numLines(item);
+  const raw = await fetchLocal("data/ridership.csv", "csv");
+  const parseTime = d3.timeParse("%m/%d/%Y");
+  return raw
+    .map((item) => {
+      const station = lstations.get(item.station_id);
+      const num = numLines(item);
 
-		var rides_ratio = {}
-		for (const i in color_names) {
-			rides_ratio[color_names[i]] = station[color_names[i]] ? Math.round(item.rides / num) : null;
-		}
+      var rides_ratio = {};
+      for (const i in color_names) {
+        rides_ratio[color_names[i]] = station[color_names[i]]
+          ? Math.round(item.rides / num)
+          : null;
+      }
 
-		return {
-			...item,
-			date: parseTime(item.date),
-			...rides_ratio
-		}
-	}).sort( (a,b) => {return b.date - a.date} )
+      return {
+        ...item,
+        date: parseTime(item.date),
+        ...rides_ratio,
+      };
+    })
+    .sort((a, b) => {
+      return b.date - a.date;
+    });
 
-	// returns the number of lines a station serves
-	function numLines(item) {
-		return Object.values(lstations.get(item.station_id)).slice(3, 11).filter(Boolean).length
-	}
+  // returns the number of lines a station serves
+  function numLines(item) {
+    return Object.values(lstations.get(item.station_id))
+      .slice(3, 11)
+      .filter(Boolean).length;
+  }
 }
 
 function drawHistogram(ridership) {
-	// constants
-	const width = 1000;
-	const height = 400;
+  // constants
+  const width = 1000;
+  const height = 400;
 
-	var ridershipHistogram = Histogram(
-		d3.rollup(
-		  ridership.filter(d => d.date.getFullYear() == 2019),
-		  group => group.reduce((sum, item) => sum + item.rides, 0),
-		  d => d.station_id
-		),
-		{
-		  value: d => d[1] / 365,
-			width: width,
-			height: height,
-		  color: rgb_values[3],
-			normalize: true,
-		}
-	);
+  var ridershipHistogram = Histogram(
+    d3.rollup(
+      ridership.filter((d) => d.date.getFullYear() == 2019),
+      (group) => group.reduce((sum, item) => sum + item.rides, 0),
+      (d) => d.station_id
+    ),
+    {
+      value: (d) => d[1] / 365,
+      width: width,
+      height: height,
+      color: rgb_values[3],
+      normalize: true,
+    }
+  );
 
-	d3.select("#hist-container")
-		.append(() => ridershipHistogram)
-		.attr('viewBox', `0 0 ${width} ${height}`)
-		.attr('class', 'svg-item');
+  d3.select("#hist-container")
+    .append(() => ridershipHistogram)
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("class", "svg-item");
 }
 
 // Copyright 2021 Observable, Inc.
 // Released under the ISC license.
 // https://observablehq.com/@d3/histogram
-function Histogram(data, {
-  value = d => d, // convenience alias for x
-  domain, // convenience alias for xDomain
-  label, // convenience alias for xLabel
-  format, // convenience alias for xFormat
-  type = d3.scaleLinear, // convenience alias for xType
-  x = value, // given d in data, returns the (quantitative) x-value
-  y = () => 1, // given d in data, returns the (quantitative) weight
-  thresholds = 40, // approximate number of bins to generate, or threshold function
-  normalize, // whether to normalize values to a total of 100%
-  marginTop = 20, // top margin, in pixels
-  marginRight = 30, // right margin, in pixels
-  marginBottom = 30, // bottom margin, in pixels
-  marginLeft = 40, // left margin, in pixels
-  width = 640, // outer width of chart, in pixels
-  height = 400, // outer height of chart, in pixels
-  insetLeft = 0.5, // inset left edge of bar
-  insetRight = 0.5, // inset right edge of bar
-  xType = type, // type of x-scale
-  xDomain = domain, // [xmin, xmax]
-  xRange = [marginLeft, width - marginRight], // [left, right]
-  xLabel = label, // a label for the x-axis
-  xFormat = format, // a format specifier string for the x-axis
-  yType = d3.scaleLinear, // type of y-scale
-  yDomain, // [ymin, ymax]
-  yRange = [height - marginBottom, marginTop], // [bottom, top]
-  yLabel = "↑ Frequency", // a label for the y-axis
-  yFormat = normalize ? "%" : undefined, // a format specifier string for the y-axis
-  color = "currentColor" // bar fill color
-} = {}) {
+function Histogram(
+  data,
+  {
+    value = (d) => d, // convenience alias for x
+    domain, // convenience alias for xDomain
+    label, // convenience alias for xLabel
+    format, // convenience alias for xFormat
+    type = d3.scaleLinear, // convenience alias for xType
+    x = value, // given d in data, returns the (quantitative) x-value
+    y = () => 1, // given d in data, returns the (quantitative) weight
+    thresholds = 40, // approximate number of bins to generate, or threshold function
+    normalize, // whether to normalize values to a total of 100%
+    marginTop = 20, // top margin, in pixels
+    marginRight = 30, // right margin, in pixels
+    marginBottom = 30, // bottom margin, in pixels
+    marginLeft = 40, // left margin, in pixels
+    width = 640, // outer width of chart, in pixels
+    height = 400, // outer height of chart, in pixels
+    insetLeft = 0.5, // inset left edge of bar
+    insetRight = 0.5, // inset right edge of bar
+    xType = type, // type of x-scale
+    xDomain = domain, // [xmin, xmax]
+    xRange = [marginLeft, width - marginRight], // [left, right]
+    xLabel = label, // a label for the x-axis
+    xFormat = format, // a format specifier string for the x-axis
+    yType = d3.scaleLinear, // type of y-scale
+    yDomain, // [ymin, ymax]
+    yRange = [height - marginBottom, marginTop], // [bottom, top]
+    yLabel = "↑ Frequency", // a label for the y-axis
+    yFormat = normalize ? "%" : undefined, // a format specifier string for the y-axis
+    color = "currentColor", // bar fill color
+  } = {}
+) {
   // Compute values.
   const X = d3.map(data, x);
   const Y0 = d3.map(data, y);
   const I = d3.range(X.length);
 
   // Compute bins.
-  const bins = d3.bin().thresholds(thresholds).value(i => X[i])(I);
-  const Y = Array.from(bins, I => d3.sum(I, i => Y0[i]));
+  const bins = d3
+    .bin()
+    .thresholds(thresholds)
+    .value((i) => X[i])(I);
+  const Y = Array.from(bins, (I) => d3.sum(I, (i) => Y0[i]));
   if (normalize) {
     const total = d3.sum(Y);
     for (let i = 0; i < Y.length; ++i) Y[i] /= total;
@@ -157,141 +321,170 @@ function Histogram(data, {
   // Construct scales and axes.
   const xScale = xType(xDomain, xRange);
   const yScale = yType(yDomain, yRange);
-  const xAxis = d3.axisBottom(xScale).ticks(width / 80, xFormat).tickSizeOuter(0);
+  const xAxis = d3
+    .axisBottom(xScale)
+    .ticks(width / 80, xFormat)
+    .tickSizeOuter(0);
   const yAxis = d3.axisLeft(yScale).ticks(height / 40, yFormat);
   yFormat = yScale.tickFormat(100, yFormat);
 
-  const svg = d3.create("svg")
-      .attr("width", width)
-      .attr("height", height)
-      .attr("viewBox", [0, 0, width, height])
-      .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
+  const svg = d3
+    .create("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", [0, 0, width, height])
+    .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
 
-  svg.append("g")
-      .attr("transform", `translate(${marginLeft},0)`)
-      .call(yAxis)
-      .call(g => g.select(".domain").remove())
-      .call(g => g.selectAll(".tick line").clone()
-          .attr("x2", width - marginLeft - marginRight)
-          .attr("stroke-opacity", 0.1))
-      .call(g => g.append("text")
-          .attr("x", -marginLeft)
-          .attr("y", 10)
-          .attr("fill", "currentColor")
-          .attr("text-anchor", "start")
-          .text(yLabel));
+  svg
+    .append("g")
+    .attr("transform", `translate(${marginLeft},0)`)
+    .call(yAxis)
+    .call((g) => g.select(".domain").remove())
+    .call((g) =>
+      g
+        .selectAll(".tick line")
+        .clone()
+        .attr("x2", width - marginLeft - marginRight)
+        .attr("stroke-opacity", 0.1)
+    )
+    .call((g) =>
+      g
+        .append("text")
+        .attr("x", -marginLeft)
+        .attr("y", 10)
+        .attr("fill", "currentColor")
+        .attr("text-anchor", "start")
+        .text(yLabel)
+    );
 
-  svg.append("g")
-      .attr("fill", color)
+  svg
+    .append("g")
+    .attr("fill", color)
     .selectAll("rect")
     .data(bins)
     .join("rect")
-      .attr("x", d => xScale(d.x0) + insetLeft)
-      .attr("width", d => Math.max(0, xScale(d.x1) - xScale(d.x0) - insetLeft - insetRight))
-      .attr("y", (d, i) => yScale(Y[i]))
-      .attr("height", (d, i) => yScale(0) - yScale(Y[i]))
+    .attr("x", (d) => xScale(d.x0) + insetLeft)
+    .attr("width", (d) =>
+      Math.max(0, xScale(d.x1) - xScale(d.x0) - insetLeft - insetRight)
+    )
+    .attr("y", (d, i) => yScale(Y[i]))
+    .attr("height", (d, i) => yScale(0) - yScale(Y[i]))
     .append("title")
-      .text((d, i) => [`${d.x0} ≤ x < ${d.x1}`, yFormat(Y[i])].join("\n"));
+    .text((d, i) => [`${d.x0} ≤ x < ${d.x1}`, yFormat(Y[i])].join("\n"));
 
-  svg.append("g")
-      .attr("transform", `translate(0,${height - marginBottom})`)
-      .call(xAxis)
-      .call(g => g.append("text")
-          .attr("x", width - marginRight)
-          .attr("y", 27)
-          .attr("fill", "currentColor")
-          .attr("text-anchor", "end")
-          .text(xLabel));
-	
+  svg
+    .append("g")
+    .attr("transform", `translate(0,${height - marginBottom})`)
+    .call(xAxis)
+    .call((g) =>
+      g
+        .append("text")
+        .attr("x", width - marginRight)
+        .attr("y", 27)
+        .attr("fill", "currentColor")
+        .attr("text-anchor", "end")
+        .text(xLabel)
+    );
+
   return svg.node();
 }
 
 function drawLineChart(ridership) {
-	var chart = lineChart(ridership);
-	chart.update(ridership);
+  var chart = lineChart(ridership);
+  chart.update(ridership);
 
-	console.log(chart);
+  // console.log(chart);
 
-	d3.select("#linechart-container")
-		.append(() => chart);
+  d3.select("#linechart-container").append(() => chart);
 }
 
 function lineChart(ridership) {
-		// set up
-		const margin = {top: 10, right: 20, bottom: 50, left: 100};
-		const visWidth = 1000;
-		const visHeight = 400;
-	
-		const svg = d3.create('svg')
-			.attr('viewBox', `0 0 ${visWidth + margin.left + margin.right} ${visHeight + margin.top + margin.bottom}`);
-		// .attr('width', visWidth + margin.left + margin.right)
-		// .attr('height', visHeight + margin.top + margin.bottom);
-	
-		const g = svg.append("g")
-			.attr("transform", `translate(${margin.left}, ${margin.top})`);
-	
-		// create scales
-		var x = d3.scaleTime()
-			.domain(d3.extent(ridership, d => d.date))
-			.range([0, visWidth]);
-	
-		const y = d3.scaleLinear()
-			.range([visHeight, 0]);
-	
-		// create and add axes
-		const xAxis = d3.axisBottom(x);
-		const xAxisGroup = g.append("g")
-			.call(xAxis)
-			.attr("transform", `translate(0, ${visHeight})`);
-		xAxisGroup.append('text')
-			.attr('x', visWidth / 2)
-			.attr('y', 40)
-			.attr('fill', 'black')
-			.attr('text-anchor', 'middle')
-			.text('Date');
-	
-		const yAxis = d3.axisLeft(y).tickSizeOuter(0);
-		const yAxisGroup = g.append("g")
-		yAxisGroup.append("text")
-			.attr("x", -visHeight / 2)
-			.attr("y", -70)
-			.attr("fill", "black")
-			.attr("text-anchor", "middle")
-			.attr('transform', 'rotate(-90)')
-			.text("Ridership Total");
-	
-		function update(data) {
-			// get the number of rides for each month
-			const dailyCounts = d3.rollup(
-				data,
-				group => group.reduce((sum, item) => sum + item.rides, 0),
-				d => d.date.getFullYear() + '-' + ("0" + (d.date.getMonth() + 1)).slice(-2)
-			);
-	
-			// update y scale
-			y.domain([0, d3.max(dailyCounts.values())]).nice()
-	
-			// update y axis
-			const t = svg.transition()
-				.ease(d3.easeLinear)
-				.duration(200);
-	
-			yAxisGroup
-				.transition(t)
-				.call(yAxis);
-	
-			const parseTime = d3.timeParse("%Y-%m");
-	
-			svg.append("path")
-				.datum(dailyCounts)
-				.attr("fill", "none")
-				.attr("stroke", "steelblue")
-				.attr("stroke-width", 1.5)
-				.attr(
-					"d",
-					d3.line().x(([date, count]) => x(parseTime(date)) + margin.left).y(([date, count]) => y(count) + margin.top)
-				)
-		}
-	
-		return Object.assign(svg.node(), { update });
+  // set up
+  const margin = { top: 10, right: 20, bottom: 50, left: 100 };
+  const visWidth = 1000;
+  const visHeight = 400;
+
+  const svg = d3
+    .create("svg")
+    .attr(
+      "viewBox",
+      `0 0 ${visWidth + margin.left + margin.right} ${
+        visHeight + margin.top + margin.bottom
+      }`
+    );
+  // .attr('width', visWidth + margin.left + margin.right)
+  // .attr('height', visHeight + margin.top + margin.bottom);
+
+  const g = svg
+    .append("g")
+    .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+  // create scales
+  var x = d3
+    .scaleTime()
+    .domain(d3.extent(ridership, (d) => d.date))
+    .range([0, visWidth]);
+
+  const y = d3.scaleLinear().range([visHeight, 0]);
+
+  // create and add axes
+  const xAxis = d3.axisBottom(x);
+  const xAxisGroup = g
+    .append("g")
+    .call(xAxis)
+    .attr("transform", `translate(0, ${visHeight})`);
+  xAxisGroup
+    .append("text")
+    .attr("x", visWidth / 2)
+    .attr("y", 40)
+    .attr("fill", "black")
+    .attr("text-anchor", "middle")
+    .text("Date");
+
+  const yAxis = d3.axisLeft(y).tickSizeOuter(0);
+  const yAxisGroup = g.append("g");
+  yAxisGroup
+    .append("text")
+    .attr("x", -visHeight / 2)
+    .attr("y", -70)
+    .attr("fill", "black")
+    .attr("text-anchor", "middle")
+    .attr("transform", "rotate(-90)")
+    .text("Ridership Total");
+
+  function update(data) {
+    // get the number of rides for each month
+    const dailyCounts = d3.rollup(
+      data,
+      (group) => group.reduce((sum, item) => sum + item.rides, 0),
+      (d) =>
+        d.date.getFullYear() + "-" + ("0" + (d.date.getMonth() + 1)).slice(-2)
+    );
+
+    // update y scale
+    y.domain([0, d3.max(dailyCounts.values())]).nice();
+
+    // update y axis
+    const t = svg.transition().ease(d3.easeLinear).duration(200);
+
+    yAxisGroup.transition(t).call(yAxis);
+
+    const parseTime = d3.timeParse("%Y-%m");
+
+    svg
+      .append("path")
+      .datum(dailyCounts)
+      .attr("fill", "none")
+      .attr("stroke", "steelblue")
+      .attr("stroke-width", 1.5)
+      .attr(
+        "d",
+        d3
+          .line()
+          .x(([date, count]) => x(parseTime(date)) + margin.left)
+          .y(([date, count]) => y(count) + margin.top)
+      );
+  }
+
+  return Object.assign(svg.node(), { update });
 }
