@@ -771,8 +771,8 @@ function drawLinkedMap(ridership, lstations, raillines, zipcodes) {
 
   function barChartStations() {
     // set up
-    const visWidth = 500,
-      visHeight = 650;
+    const visWidth = 700,
+      visHeight = 600;
     const margin = { top: 0, right: 30, bottom: 50, left: 150 };
     const totalWidth = visWidth + margin.left + margin.right;
     const totalHeight = visHeight + margin.top + margin.bottom;
