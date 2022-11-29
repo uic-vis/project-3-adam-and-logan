@@ -15,7 +15,7 @@ body {
 }
 
 #header {
-  margin: 5vh auto 5vh;
+  margin: 5em auto 5em;
   text-align: center;
 }
 
@@ -39,7 +39,7 @@ body {
   /* display: flex; */
   padding-left: 10em;
   padding-right: 10em;
-  margin-bottom: 5vh;
+  margin-bottom: 5em;
 }
 
 #secondLine-container {
