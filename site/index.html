@@ -12,6 +12,7 @@
   </head>
 
   <body>
+
     <div id="header">
       <h1>CTA 'L' Ridership Data</h1>
       <p>CS 424: Project 3</p>
@@ -27,7 +28,9 @@
     <div id="hist-container" class="vis"></div>
     <p>Most stations have an average daily ridership between 500 and 3500.</p>
 
-    <h2>Ridership by Year</h2>
+		<hr>
+
+    <h2>Total Yearly Ridership</h2>
     <h4>Static view from Project 2</h4>
     <p>
       We see the steep drop in ridership at the beginning of 2020 corresponding
@@ -35,7 +38,26 @@
     </p>
     <div id="linechart-container" class="vis"></div>
 
-    <h2>Ridership by Line</h2>
+		<hr>
+
+    <h2>Yearly Ridership by Line</h2>
+    <h4>Interactive view</h4>
+    <div id="secondLine-container" class="vis">
+			<select id="line-select">
+				<option>blue</option>
+				<option>red</option>
+				<option>green</option>
+				<option>orange</option>
+				<option>purple</option>
+				<option>pink</option>
+				<option>yellow</option>
+				<option>hrown</option>
+			</select>
+		</div>
+
+		<hr>
+
+    <h2>Total Ridership by Line</h2>
     <h4>Interactive view from Project 2</h4>
     <div id="barchart" class="vis"></div>
     <div id="slider-container">
@@ -57,8 +79,9 @@
         step="1"
         value="1"
       />
-      <!--   <p id="selectorYear"></p> -->
     </div>
+
+		<hr>
 
     <h2>Mapping Stations</h2>
     <h4>Interactive spatial view from Project 2</h4>
@@ -84,6 +107,8 @@
       />
     </div>
 
+		<hr>
+
     <h2>Station Detail</h2>
     <h4>Interactive linked spatial view from Project 2</h4>
     <div id="linkedmap-container" class="vis"></div>
@@ -99,22 +124,11 @@
       />
     </div>
 
+		<hr>
+
     <h2>Weather vs. Ridership</h2>
     <h4>Interactive linked view</h4>
     <div id="linkedchart-container" class="vis"></div>
 
-    <h2>Other more different Weather vs. Ridership</h2>
-    <h4>Interactive view</h4>
-    <div id="secondLine-container" class="vis"></div>
-    <select id="line-select">
-      <option>blue</option>
-      <option>red</option>
-      <option>green</option>
-      <option>orange</option>
-      <option>purple</option>
-      <option>pink</option>
-      <option>yellow</option>
-      <option>brown</option>
-    </select>
   </body>
 </html>

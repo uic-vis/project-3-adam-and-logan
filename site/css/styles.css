@@ -20,8 +20,8 @@ body {
 }
 
 .vis {
-  border-style: dashed;
-  border-width: 0.1em;
+  /* border-style: dashed;
+  border-width: 0.1em; */
   padding: 1em;
   width: 90%;
   display: flex;
@@ -39,4 +39,18 @@ body {
   /* display: flex; */
   padding-left: 10em;
   padding-right: 10em;
+  margin-bottom: 5vh;
+}
+
+#secondLine-container {
+  flex-direction: row-reverse;
+}
+
+hr {
+  border-width: 1px;
+  height: 1px;
+  color: #565a5c33;
+  width: 80%;
+  margin-top: 3em;
+  margin-bottom: 3em;
 }
