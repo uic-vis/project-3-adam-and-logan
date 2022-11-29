@@ -582,12 +582,14 @@ function drawInteractiveLineChart(ridership) {
 
     const parseTime = d3.timeParse("%Y-%m");
 
+    svg.selectAll('.line').remove();
     svg
       .append("path")
       .datum(dailyCounts)
       .attr("fill", "none")
       .attr("stroke", rgb_values[color_names.indexOf(dropDownColor)])
       .attr("stroke-width", 1.5)
+      .attr('class', 'line')
       .attr(
         "d",
         d3
