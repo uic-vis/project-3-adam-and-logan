@@ -27,8 +27,8 @@ main();
 async function main() {
   const lstations = await loadLstations();
   const ridership = await loadRidership(lstations);
-  const raillines = await fetchLocal('data/raillines.geojson', 'json');
-  const zipcodes = await fetchLocal('data/zipcodes.geojson', 'json');
+  const raillines = await fetchLocal("data/raillines.geojson", "json");
+  const zipcodes = await fetchLocal("data/zipcodes.geojson", "json");
   const weather = await loadWeather();
 
   bars(ridership);
@@ -555,7 +555,13 @@ function drawInteractiveLineChart(ridership) {
     .attr("transform", "rotate(-90)")
     .text("Ridership Total");
 
-  update(ridership, 'blue');
+  let line_select = document.getElementById("line-select");
+  line_select.onchange = () => {
+    let line = line_select.value;
+    update(ridership, line);
+  };
+
+  update(ridership, "blue");
 
   function update(data, dropDownColor) {
     // get the number of rides for each month
@@ -1030,25 +1036,24 @@ function addLines(svg, projection, raillines) {
 }
 
 function drawLinkedChart(weather, ridership, lstations) {
+  const lineCounts = d3.rollup(
+    ridership,
+    (v) => ({
+      blue: d3.sum(v, (d) => d.blue),
+      green: d3.sum(v, (d) => d.green),
+      yellow: d3.sum(v, (d) => d.yellow),
+      red: d3.sum(v, (d) => d.red),
+      orange: d3.sum(v, (d) => d.orange),
+      brown: d3.sum(v, (d) => d.brown),
+      purple: d3.sum(v, (d) => d.purple),
+      pink: d3.sum(v, (d) => d.pink),
+    }),
+    (d) => d.date
+  );
+  console.log(lineCounts);
 
-	const lineCounts = d3.rollup(
-		ridership,
-		v => ({
-			blue: d3.sum(v, d => d.blue),
-			green: d3.sum(v, d => d.green),
-			yellow: d3.sum(v, d => d.yellow),
-			red: d3.sum(v, d => d.red),
-			orange: d3.sum(v, d => d.orange),
-			brown: d3.sum(v, d => d.brown),
-			purple: d3.sum(v, d => d.purple),
-			pink: d3.sum(v, d => d.pink),
-		}),
-		d => d.date
-	)
-	console.log(lineCounts);
-
-	var svgWeather = brushableLineChart();
-	var svgRidership = multipleLineChart();
+  var svgWeather = brushableLineChart();
+  var svgRidership = multipleLineChart();
 
   d3.select("#linkedchart-container").append(() => svgWeather);
   d3.select("#linkedchart-container").append(() => svgRidership);
@@ -1069,13 +1074,13 @@ function drawLinkedChart(weather, ridership, lstations) {
     }
   });
 
-	function brushableLineChart() {
-		// setup
-		const margin = { top: 10, right: 20, bottom: 50, left: 100 };
-		const visWidth = 1000;
-		const visHeight = 100;
-		const totalWidth = visWidth + margin.left + margin.right;
-		const totalHeight = visHeight + margin.top + margin.bottom
+  function brushableLineChart() {
+    // setup
+    const margin = { top: 10, right: 20, bottom: 50, left: 100 };
+    const visWidth = 1000;
+    const visHeight = 100;
+    const totalWidth = visWidth + margin.left + margin.right;
+    const totalHeight = visHeight + margin.top + margin.bottom;
 
     // svg
     const svg = d3
@@ -1149,9 +1154,7 @@ function drawLinkedChart(weather, ridership, lstations) {
       // .on("brush", onBrush)
       .on("end", endBrush);
 
-		g.append('g')
-			.attr('id', 'brush_g')
-			.call(brush);
+    g.append("g").attr("id", "brush_g").call(brush);
 
     g.append("g").attr("id", "brush_g").call(brush);
 
@@ -1185,13 +1188,13 @@ function drawLinkedChart(weather, ridership, lstations) {
     return svg.node();
   }
 
-	function multipleLineChart() {
-		// set up
-		const margin = { top: 10, right: 20, bottom: 50, left: 100 };
-		const visWidth = 1000;
-		const visHeight = 300;
-		const totalWidth = visWidth + margin.left + margin.right;
-		const totalHeight = visHeight + margin.top + margin.bottom
+  function multipleLineChart() {
+    // set up
+    const margin = { top: 10, right: 20, bottom: 50, left: 100 };
+    const visWidth = 1000;
+    const visHeight = 300;
+    const totalWidth = visWidth + margin.left + margin.right;
+    const totalHeight = visHeight + margin.top + margin.bottom;
 
     const svg = d3
       .create("svg")
@@ -1237,14 +1240,14 @@ function drawLinkedChart(weather, ridership, lstations) {
       .attr("transform", "rotate(-90)")
       .text("Ridership Total");
 
-		update(null);
+    update(null);
 
-		function update(data) {
-			var updateY = false;
-			if (data == null) {
-				data = ridership;
-				updateY = true;
-			}
+    function update(data) {
+      var updateY = false;
+      if (data == null) {
+        data = ridership;
+        updateY = true;
+      }
 
       // get the number of rides for each month
       const dailyCounts = d3.rollup(
@@ -1254,29 +1257,25 @@ function drawLinkedChart(weather, ridership, lstations) {
           d.date.getFullYear() + "-" + ("0" + (d.date.getMonth() + 1)).slice(-2)
       );
 
-			const parseTime = d3.timeParse("%Y-%m");
+      const parseTime = d3.timeParse("%Y-%m");
 
-			// update x scale
-			x.domain(d3.extent(dailyCounts.keys(), d => parseTime(d))).nice();
+      // update x scale
+      x.domain(d3.extent(dailyCounts.keys(), (d) => parseTime(d))).nice();
 
-			// update x axis
-			const t = svg.transition().ease(d3.easeLinear).duration(200);
-	
-			xAxisGroup
-				.transition(t)
-				.call(xAxis);
+      // update x axis
+      const t = svg.transition().ease(d3.easeLinear).duration(200);
 
-			if (updateY) {
-				// update y scale
-					y.domain([0, d3.max(dailyCounts.values())]).nice();
+      xAxisGroup.transition(t).call(xAxis);
 
-				// update y axis
-				yAxisGroup
-					.transition(t)
-					.call(yAxis);
-			}
+      if (updateY) {
+        // update y scale
+        y.domain([0, d3.max(dailyCounts.values())]).nice();
 
-			svg.selectAll(".line").remove();
+        // update y axis
+        yAxisGroup.transition(t).call(yAxis);
+      }
+
+      svg.selectAll(".line").remove();
 
       svg
         .append("path")
