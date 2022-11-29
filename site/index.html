@@ -32,34 +32,70 @@
     <div id="linechart-container" class="vis"></div>
 
     <h2>Ridership by Line</h2>
-    <div id="barchart" class="vis">
-      <div id="slider-container">
-        Year: <span id="year"></span>
-        <input
-          id="yearSlider"
-          type="range"
-          min="2001"
-          max="2022"
-          step="1"
-          value="2015"
-        />
-        Month: <span id="month"></span>
-        <input
-          id="monthSlider"
-          type="range"
-          min="0"
-          max="11"
-          step="1"
-          value="1"
-        />
-        <!--   <p id="selectorYear"></p> -->
-      </div>
+    <div id="barchart" class="vis"></div>
+    <div id="slider-container">
+      Year: <span id="year"></span>
+      <input
+        id="yearSlider"
+        type="range"
+        min="2001"
+        max="2022"
+        step="1"
+        value="2015"
+      />
+      Month: <span id="month"></span>
+      <input
+        id="monthSlider"
+        type="range"
+        min="0"
+        max="11"
+        step="1"
+        value="1"
+      />
+      <!--   <p id="selectorYear"></p> -->
     </div>
 
     <h2>Mapping Stations</h2>
     <div id="map-container" class="vis"></div>
+    <div id="map-slider-container">
+      Year: <span id="map-year"></span>
+      <input
+        id="map-yearSlider"
+        type="range"
+        min="2001"
+        max="2022"
+        step="1"
+        value="2015"
+      />
+      Month: <span id="map-month"></span>
+      <input
+        id="map-monthSlider"
+        type="range"
+        min="0"
+        max="11"
+        step="1"
+        value="1"
+      />
+    </div>
 
     <h2>Station Detail</h2>
     <div id="linkedmap-container" class="vis"></div>
+    <div id="inter-slider-container">
+      Year: <span id="inter-year"></span>
+      <input
+        id="inter-yearSlider"
+        type="range"
+        min="2001"
+        max="2022"
+        step="1"
+        value="2021"
+      />
+    </div>
+
+    <h2>Multiple Linked View</h2>
+    <div id="linkedchart-container" class="vis"></div>
+
+    <h2>New Spatial View</h2>
+    <div id="spatial-container" class="vis"></div>
   </body>
 </html>
