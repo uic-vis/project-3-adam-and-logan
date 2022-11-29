@@ -45,8 +45,14 @@ function barChartLines() {
   const visWidth = 800;
   const visHeight = 400;
   const margin = { top: 10, right: 20, bottom: 50, left: 50 };
+  const totalWidth = visWidth + margin.left + margin.right;
+  const totalHeight = visHeight + margin.top + margin.bottom;
 
-  const svg = d3.create("svg").attr("width", "80%").attr("height", "50vh");
+  const svg = d3.create("svg")
+    .attr("width", totalWidth)
+    .attr("height", totalHeight)
+    .attr("viewBox", [0, 0, totalWidth, totalHeight])
+    .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
 
   const g = svg
     .append("g")
@@ -755,8 +761,8 @@ function drawLinkedMap(ridership, lstations, raillines, zipcodes) {
 
   function brushableMap() {
     // variables
-    const mapWidth = 600,
-      mapHeight = 750;
+    const mapWidth = 500,
+      mapHeight = 600;
 
     const projection = createProjection(
       mapWidth,
@@ -870,8 +876,8 @@ function drawLinkedMap(ridership, lstations, raillines, zipcodes) {
 
   function barChartStations() {
     // set up
-    const visWidth = 700,
-      visHeight = 600;
+    const visWidth = 600,
+      visHeight = 500;
     const margin = { top: 0, right: 30, bottom: 50, left: 150 };
     const totalWidth = visWidth + margin.left + margin.right;
     const totalHeight = visHeight + margin.top + margin.bottom;
