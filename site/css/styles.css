@@ -29,11 +29,6 @@ body {
   flex-direction: column;
 }
 
-svg {
-  display: block;
-  margin: auto;
-}
-
 #linkedmap-container {
   display: flex;
   padding-left: 20em;
