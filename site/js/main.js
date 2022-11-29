@@ -262,7 +262,7 @@ async function loadWeather() {
     .sort((a, b) => {
       return a.date - b.date;
     });
-  console.log(weather);
+  weather = d3.filter(weather, d => d.date >= new Date(2005, 0))
   return weather;
 }
 
