@@ -3,111 +3,132 @@
   <head>
     <title>CTA 'L' Ridership</title>
     <link rel="stylesheet" href="css/styles.css" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    <link rel="manifest" href="/site.webmanifest" />
+    <!-- <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"> -->
+    <!-- <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"> -->
+    <!-- <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"> -->
+    <!-- <link rel="manifest" href="/site.webmanifest"> -->
     <script src="js/d3.v7.min.js"></script>
     <script src="js/main.js"></script>
   </head>
 
   <body>
+
     <div id="header">
       <h1>CTA 'L' Ridership Data</h1>
+      <p>CS 424: Project 3</p>
+      <p>Adam Beigel and Logan Stein</p>
     </div>
 
-    <div class="graphs-container">
-      <h2>Average Daily Ridership</h2>
-      <div id="histogram" class="vis">
-        <div id="observablehq-ridershipHistogram-94290cc0"></div>
-        <p>
-          Credit:
-          <a href="https://observablehq.com/@abeige/cs-424-project-2"
-            >CTA &#039;L&#039; Ridership Data by Adam Beigel</a
-          >
-        </p>
+    <h2>Average Daily Ridership</h2>
+    <h4>Static view from Project 2</h4>
+    <p>
+      Histogram frequency represents the number of stations with the
+      corresponding average daily ridership for the entire span of data.
+    </p>
+    <div id="hist-container" class="vis"></div>
+    <p>Most stations have an average daily ridership between 500 and 3500.</p>
 
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/@observablehq/inspector@5/dist/inspector.css"
-        />
-        <script type="module">
-          import {
-            Runtime,
-            Inspector,
-          } from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@5/dist/runtime.js";
-          import define from "https://api.observablehq.com/@abeige/cs-424-project-2@3609.js?v=3";
-          new Runtime().module(define, (name) => {
-            if (name === "ridershipHistogram")
-              return new Inspector(
-                document.querySelector(
-                  "#observablehq-ridershipHistogram-94290cc0"
-                )
-              );
-          });
-        </script>
-      </div>
+		<hr>
 
-      <h2>Ridership by Year</h2>
-      <div id="linegraph" class="vis"></div>
+    <h2>Total Yearly Ridership</h2>
+    <h4>Static view from Project 2</h4>
+    <p>
+      We see the steep drop in ridership at the beginning of 2020 corresponding
+      with the start of the COVID-19 pandemic.
+    </p>
+    <div id="linechart-container" class="vis"></div>
 
-      <h2>Ridership by Line</h2>
-      <!-- not sure how to make the bar chart bigger. 
-        In the observable notebook I would change visHeight variable from 400 to 600 but I'm not sure how to make it responsive-->
-      <div id="barchart" class="vis">
-        <div id="observablehq-bars-5a447fd8" class="bar-chart"></div>
-        <div id="slider-container">
-          Year: <span id="year"></span>
-          <input
-            id="yearSlider"
-            type="range"
-            min="2001"
-            max="2022"
-            step="1"
-            value="2015"
-          />
-          Month: <span id="month"></span>
-          <input
-            id="monthSlider"
-            type="range"
-            min="0"
-            max="11"
-            step="1"
-            value="1"
-          />
-          <!--   <p id="selectorYear"></p> -->
-        </div>
-        <p>
-          Credit:
-          <a href="https://observablehq.com/@abeige/cs-424-project-2"
-            >CTA &#039;L&#039; Ridership Data by Adam Beigel</a
-          >
-        </p>
+		<hr>
 
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/@observablehq/inspector@5/dist/inspector.css"
-        />
-        <script type="module">
-          import {
-            Runtime,
-            Inspector,
-          } from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@5/dist/runtime.js";
-          import define from "https://api.observablehq.com/@abeige/cs-424-project-2@3607.js?v=3";
-          new Runtime().module(define, (name) => {
-            if (name === "bars")
-              return new Inspector(
-                document.querySelector("#observablehq-bars-5a447fd8")
-              );
-          });
-        </script>
-      </div>
+    <h2>Yearly Ridership by Line</h2>
+    <h4>Interactive view</h4>
+    <div id="secondLine-container" class="vis">
+			<select id="line-select">
+				<option>blue</option>
+				<option>red</option>
+				<option>green</option>
+				<option>orange</option>
+				<option>purple</option>
+				<option>pink</option>
+				<option>yellow</option>
+				<option>brown</option>
+			</select>
+		</div>
 
-      <h2>Mapping Stations</h2>
-      <div id="map" class="vis"></div>
+		<hr>
 
-      <h2>Station Detail</h2>
-      <div id="map-barchart" class="vis"></div>
+    <h2>Total Ridership by Line</h2>
+    <h4>Interactive view from Project 2</h4>
+    <div id="barchart" class="vis"></div>
+    <div id="slider-container">
+      Year: <span id="year"></span>
+      <input
+        id="yearSlider"
+        type="range"
+        min="2005"
+        max="2022"
+        step="1"
+        value="2015"
+      />
+      Month: <span id="month"></span>
+      <input
+        id="monthSlider"
+        type="range"
+        min="0"
+        max="11"
+        step="1"
+        value="1"
+      />
     </div>
+
+		<hr>
+
+    <h2>Mapping Stations</h2>
+    <h4>Interactive spatial view from Project 2</h4>
+    <div id="map-container" class="vis"></div>
+    <div id="map-slider-container">
+      Year: <span id="map-year"></span>
+      <input
+        id="map-yearSlider"
+        type="range"
+        min="2005"
+        max="2022"
+        step="1"
+        value="2015"
+      />
+      Month: <span id="map-month"></span>
+      <input
+        id="map-monthSlider"
+        type="range"
+        min="0"
+        max="11"
+        step="1"
+        value="1"
+      />
+    </div>
+
+		<hr>
+
+    <h2>Station Detail</h2>
+    <h4>Interactive linked spatial view from Project 2</h4>
+    <div id="linkedmap-container" class="vis"></div>
+    <div id="inter-slider-container">
+      Year: <span id="inter-year"></span>
+      <input
+        id="inter-yearSlider"
+        type="range"
+        min="2005"
+        max="2022"
+        step="1"
+        value="2021"
+      />
+    </div>
+
+		<hr>
+
+    <h2>Weather vs. Ridership</h2>
+    <h4>Interactive linked view</h4>
+    <div id="linkedchart-container" class="vis"></div>
+
   </body>
 </html>

@@ -7,3 +7,5 @@
 ### 28 November 2022
 
 [Data Visualizations](https://abeige.github.io/cs424-project3/site/index.html)
+
+[Data Visualizations](https://abeige.github.io/cs424-project3/site/index.html)
