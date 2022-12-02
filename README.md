@@ -6,7 +6,7 @@
 
 ### 2 December 2022
 
-[Website](https://abeige.github.io/cs424-project3/site/index.html) (There's a lot of data- give it a minute to load.)
+[Visualization Website](https://abeige.github.io/cs424-project3/site/index.html) (There's a lot of data- give it a minute to load.)
 
 ## The Data
 
