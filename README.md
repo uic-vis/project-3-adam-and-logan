@@ -47,3 +47,21 @@ Then we joined the ridership data with the 'L' station data using the common fie
 
 For the weather data, we converted the `year` and `month` fields into a single column, `date`, containing a Date object.
 
+## Data Encoding
+
+Across our visualizations, ridership is encoded as the size of an element. On the map, it will be the area of the circle. On the bar graph, it will be the length of the bar, and on a line graph it will be the y-position of the point.
+
+In addition to ridership, we also have longitude, latitude, and the color of the 'L' line. We use a map to show the position of each station. When applicable, the official CTA colors are used for the line colors.
+
+## Exploration
+
+In order to visualize the data, we used the ZIP Code Boundaries and Rail Line Information datasets. Here you can see each of the 'L' stations plotted on top of these maps:
+
+![map preview](./images/map-preview.png)
+
+Another thing to note about the data is that the ridership total is for each *station*, and it is not broken down by line. In order to approximate the number of rides per *line*, we will make the assumption that the rides for a station are equally distributed across all the lines it services. This is not a super accurate number but it gets us close enough to see trends across the different lines.
+
+As a brief statistical analysis of the data, we have a histogram of the frequency of daily ridership totals. We can see that most stations see a daily ridership of between 500 and 3500.
+
+![histogram](./images/histogram.png)
+
