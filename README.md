@@ -4,9 +4,9 @@
 
 ### Adam Beigel and Logan Stein
 
-### 28 November 2022
+### 2 December 2022
 
-[Data Visualizations](https://abeige.github.io/cs424-project3/site/index.html)
+[Website](https://abeige.github.io/cs424-project3/site/index.html) (There's a lot of data- give it a minute or two to load.)
 
 ## The Data
 
