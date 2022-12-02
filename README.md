@@ -65,3 +65,39 @@ As a brief statistical analysis of the data, we have a histogram of the frequenc
 
 ![histogram](./images/histogram.png)
 
+## Data Questions
+
+We will answer 3 questions with our visualizations.
+
+1. How did ridership change during the pandemic?
+1. Does the weather affect ridership?
+1. Where are the most popular stations by year?
+
+### Question 1: How did ridership change during the pandemic?
+
+![yearly ridership](./images/yearly-ridership.png)
+
+This graph shows the aggregated monthly totals for all stations. We can see the huge drop in ridership in March of 2020 and ridership has not returned to pre-pandemic levels since then.
+
+### Question 2: Does the weather affect ridership?
+
+For this question, we will use an interactive visualization to compare ridership graphs for different periods of the year. This visualization shows just the ridership for the period of time the user selects, so in order to better make comparisons we fix the y-axis scale.
+
+![cold months ridership](./images/cold.png)
+
+![warm months ridership](./images/warm.png)
+
+There is nothing too surprising here; there is higher ridership in warm months. This trend consistently appears every year.
+
+### Question 3: Where are the most popular stations by year?
+
+This is best shown in our interactive and linked map/bar chart view.
+
+![map and bar chart](./images/map-bar-chart.png)
+
+The map shows the ridership by the area of the circles, and we can get more detail on the stations by selecting some of them with a brush. This shows the relative ridership a bit better and with the actual numbers via the x-axis.
+
+If we are more interested in line ridership rather than station, we also have a bar graph of ridership by line which can also be filtered by year.
+
+![line bar chart](./images/bar-chart.png)
+
