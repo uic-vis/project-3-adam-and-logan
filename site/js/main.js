@@ -42,18 +42,8 @@ async function main() {
   drawLinkedChart(weather, ridership, lstations);
 }
 
-async function fetchURL(url) {
-  console.log("fetching from URL...");
-  const data = await fetch(url)
-    .then((res) => res.json())
-    .catch((err) => {
-      throw err;
-    });
-  return data;
-}
-
 function fetchLocal(filepath, type) {
-  console.log("fetching from filepath...");
+  console.log(`fetching from ${filepath}...`);
   if (type == "csv") {
     return d3.csv(filepath, d3.autoType);
   } else if (type == "json") {
@@ -82,37 +72,12 @@ async function loadLstations() {
   return new Map(arr.map((item) => [item.station_id, { ...item }]));
 }
 
-async function loadRidership(lstations) {
-  const raw = await fetchLocal("data/ridership.csv", "csv");
-  const parseTime = d3.timeParse("%m/%d/%Y");
-  return raw
-    .map((item) => {
-      const station = lstations.get(item.station_id);
-      const num = numLines(item);
-
-      var rides_ratio = {};
-      for (const i in color_names) {
-        rides_ratio[color_names[i]] = station[color_names[i]]
-          ? Math.round(item.rides / num)
-          : null;
-      }
-
-      return {
-        ...item,
-        date: parseTime(item.date),
-        ...rides_ratio,
-      };
-    })
-    .sort((a, b) => {
-      return b.date - a.date;
-    });
-
-  // returns the number of lines a station serves
-  function numLines(item) {
-    return Object.values(lstations.get(item.station_id))
-      .slice(3, 11)
-      .filter(Boolean).length;
-  }
+async function loadRidership() {
+  const raw1 = await fetchLocal("data/ridership-processed-1.csv", "csv");
+  const raw2 = await fetchLocal("data/ridership-processed-2.csv", "csv");
+  const raw = raw1.concat(raw2);
+  var ridership = raw.map(d => ({ ...d, date: new Date(d.date) }));
+  return ridership.sort((a, b) => b.date - a.date);
 }
 
 async function loadWeather() {
@@ -1157,8 +1122,7 @@ function drawLinkedChart(weather, ridership, lstations) {
     svg
       .append("g")
       .attr("class", "brush")
-      .call(brush)
-      .call(brush.move, [500, 525])
+      .call(brush);
 
     // removes handle to resize the brush
     d3.selectAll('.brush>.handle').remove();
