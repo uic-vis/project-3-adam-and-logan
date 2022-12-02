@@ -42,296 +42,6 @@ async function main() {
   drawLinkedChart(weather, ridership, lstations);
 }
 
-function barChartLines() {
-  // set up
-  const visWidth = 800;
-  const visHeight = 400;
-  const margin = { top: 10, right: 20, bottom: 50, left: 50 };
-  const totalWidth = visWidth + margin.left + margin.right;
-  const totalHeight = visHeight + margin.top + margin.bottom;
-
-  const svg = d3.create("svg")
-    .attr("width", totalWidth)
-    .attr("height", totalHeight)
-    .attr("viewBox", [0, 0, totalWidth, totalHeight])
-    .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
-
-  const g = svg
-    .append("g")
-    .attr("transform", `translate(${margin.left}, ${margin.top})`);
-
-  // create scales
-  const x = d3.scaleLinear().range([0, visWidth]);
-
-  let lineColor = d3.scaleOrdinal().domain(color_names).range(rgb_values);
-
-  const y = d3
-    .scaleBand()
-    .domain(color_names)
-    .range([0, visHeight])
-    .padding(0.2);
-
-  // create and add axes
-  const xAxis = d3.axisBottom(x).tickSizeOuter(0);
-  const xAxisGroup = g
-    .append("g")
-    .attr("transform", `translate(0, ${visHeight})`);
-  xAxisGroup
-    .append("text")
-    .attr("x", visWidth / 2)
-    .attr("y", 40)
-    .attr("fill", "black")
-    .attr("text-anchor", "middle")
-    .text("Total Ridership");
-
-  const yAxis = d3.axisLeft(y);
-  const yAxisGroup = g
-    .append("g")
-    .call(yAxis)
-    // remove baseline from the axis
-    .call((g) => g.select(".domain").remove());
-
-  let barsGroup = g.append("g");
-
-  function update(month, year, ridership) {
-    // something is causing ridership to not have .filter method
-    console.log(
-      "filtered Ridership: ",
-      ridership.filter(
-        (item) =>
-          item.date.getMonth() == month && item.date.getFullYear() == year
-      )
-    );
-    const data = ridership.filter(
-      (item) => item.date.getMonth() == month && item.date.getFullYear() == year
-    );
-
-    // update sums
-    var lineCounts = new Map();
-    for (let i = 0; i < color_names.length; i++) {
-      lineCounts.set(
-        color_names[i],
-        d3.sum(data, (d) => d[color_names[i]])
-      );
-    }
-
-    // update x scale
-    x.domain([0, d3.max(lineCounts.values())]).nice();
-
-    // update x axis
-    const t = svg.transition().ease(d3.easeLinear).duration(200);
-
-    xAxisGroup.transition(t).call(xAxis);
-
-    // draw bars
-    barsGroup
-      .selectAll("rect")
-      .data(lineCounts, ([line, count]) => line)
-      .join("rect")
-      .attr("fill", ([line, count]) => lineColor(line))
-      .attr("height", y.bandwidth())
-      .attr("x", 0)
-      .attr("y", ([line, count]) => y(line))
-      .transition(t)
-      .attr("width", ([line, count]) => x(count));
-  }
-
-  return Object.assign(svg.node(), { update });
-}
-
-function bars(ridership) {
-  let width = 400;
-  let height = 600;
-  let interactiveMonth = document.getElementById("monthSlider").value;
-  let interactiveYear = document.getElementById("yearSlider").value;
-
-  var monthSlider = document.getElementById("monthSlider");
-  var yearSlider = document.getElementById("yearSlider");
-
-  var outputMonth = document.getElementById("month");
-  var outputYear = document.getElementById("year");
-
-  // show initial values
-  outputMonth.innerHTML = parseInt(monthSlider.value) + 1;
-  interactiveMonth = monthSlider.value;
-  outputYear.innerHTML = yearSlider.value;
-  interactiveYear = yearSlider.value;
-
-  const bar = barChartLines();
-  bar.update(interactiveMonth, interactiveYear, ridership);
-
-  monthSlider.onchange = () => {
-    outputMonth.innerHTML = parseInt(monthSlider.value) + 1;
-    interactiveMonth = monthSlider.value;
-    bar.update(interactiveMonth, interactiveYear, ridership);
-  };
-
-  yearSlider.onchange = () => {
-    outputYear.innerHTML = yearSlider.value;
-    interactiveYear = yearSlider.value;
-    bar.update(interactiveMonth, interactiveYear, ridership);
-  };
-
-  d3.select("#barchart")
-    .append(() => bar)
-    .attr("viewbox", `0 0 1px 0`)
-    .attr("class", "svg-item");
-  return bar;
-}
-
-async function main() {
-  const lstations = await loadLstations();
-  const ridership = await loadRidership(lstations);
-  const raillines = await fetchLocal("data/raillines.geojson", "json");
-  const zipcodes = await fetchLocal("data/zipcodes.geojson", "json");
-  const weather = await loadWeather();
-
-  bars(ridership);
-  drawHistogram(ridership);
-  drawLineChart(ridership);
-  drawInteractiveLineChart(ridership);
-  drawMap(ridership, lstations, raillines, zipcodes);
-  drawLinkedMap(ridership, lstations, raillines, zipcodes);
-  drawLinkedChart(weather, ridership, lstations);
-}
-
-function barChartLines() {
-  // set up
-  const visWidth = 800;
-  const visHeight = 400;
-  const margin = { top: 10, right: 20, bottom: 50, left: 50 };
-  const totalWidth = visWidth + margin.left + margin.right;
-  const totalHeight = visHeight + margin.top + margin.bottom;
-
-  const svg = d3.create("svg")
-    .attr("width", totalWidth)
-    .attr("height", totalHeight)
-    .attr("viewBox", [0, 0, totalWidth, totalHeight])
-    .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
-
-  const g = svg
-    .append("g")
-    .attr("transform", `translate(${margin.left}, ${margin.top})`);
-
-  // create scales
-  const x = d3.scaleLinear().range([0, visWidth]);
-
-  let lineColor = d3.scaleOrdinal().domain(color_names).range(rgb_values);
-
-  const y = d3
-    .scaleBand()
-    .domain(color_names)
-    .range([0, visHeight])
-    .padding(0.2);
-
-  // create and add axes
-  const xAxis = d3.axisBottom(x).tickSizeOuter(0);
-  const xAxisGroup = g
-    .append("g")
-    .attr("transform", `translate(0, ${visHeight})`);
-  xAxisGroup
-    .append("text")
-    .attr("x", visWidth / 2)
-    .attr("y", 40)
-    .attr("fill", "black")
-    .attr("text-anchor", "middle")
-    .text("Total Ridership");
-
-  const yAxis = d3.axisLeft(y);
-  const yAxisGroup = g
-    .append("g")
-    .call(yAxis)
-    // remove baseline from the axis
-    .call((g) => g.select(".domain").remove());
-
-  let barsGroup = g.append("g");
-
-  function update(month, year, ridership) {
-    // something is causing ridership to not have .filter method
-    console.log(
-      "filtered Ridership: ",
-      ridership.filter(
-        (item) =>
-          item.date.getMonth() == month && item.date.getFullYear() == year
-      )
-    );
-    const data = ridership.filter(
-      (item) => item.date.getMonth() == month && item.date.getFullYear() == year
-    );
-
-    // update sums
-    var lineCounts = new Map();
-    for (let i = 0; i < color_names.length; i++) {
-      lineCounts.set(
-        color_names[i],
-        d3.sum(data, (d) => d[color_names[i]])
-      );
-    }
-
-    // update x scale
-    x.domain([0, d3.max(lineCounts.values())]).nice();
-
-    // update x axis
-    const t = svg.transition().ease(d3.easeLinear).duration(200);
-
-    xAxisGroup.transition(t).call(xAxis);
-
-    // draw bars
-    barsGroup
-      .selectAll("rect")
-      .data(lineCounts, ([line, count]) => line)
-      .join("rect")
-      .attr("fill", ([line, count]) => lineColor(line))
-      .attr("height", y.bandwidth())
-      .attr("x", 0)
-      .attr("y", ([line, count]) => y(line))
-      .transition(t)
-      .attr("width", ([line, count]) => x(count));
-  }
-
-  return Object.assign(svg.node(), { update });
-}
-
-function bars(ridership) {
-  let width = 400;
-  let height = 600;
-  let interactiveMonth = document.getElementById("monthSlider").value;
-  let interactiveYear = document.getElementById("yearSlider").value;
-
-  var monthSlider = document.getElementById("monthSlider");
-  var yearSlider = document.getElementById("yearSlider");
-
-  var outputMonth = document.getElementById("month");
-  var outputYear = document.getElementById("year");
-
-  // show initial values
-  outputMonth.innerHTML = parseInt(monthSlider.value) + 1;
-  interactiveMonth = monthSlider.value;
-  outputYear.innerHTML = yearSlider.value;
-  interactiveYear = yearSlider.value;
-
-  const bar = barChartLines();
-  bar.update(interactiveMonth, interactiveYear, ridership);
-
-  monthSlider.onchange = () => {
-    outputMonth.innerHTML = parseInt(monthSlider.value) + 1;
-    interactiveMonth = monthSlider.value;
-    bar.update(interactiveMonth, interactiveYear, ridership);
-  };
-
-  yearSlider.onchange = () => {
-    outputYear.innerHTML = yearSlider.value;
-    interactiveYear = yearSlider.value;
-    bar.update(interactiveMonth, interactiveYear, ridership);
-  };
-
-  d3.select("#barchart")
-    .append(() => bar)
-    .attr("viewbox", `0 0 1px 0`)
-    .attr("class", "svg-item");
-  return bar;
-}
-
 async function fetchURL(url) {
   console.log("fetching from URL...");
   const data = await fetch(url)
@@ -759,6 +469,136 @@ function drawInteractiveLineChart(ridership) {
           .y(([date, count]) => y(count) + margin.top)
       );
   }
+}
+
+function barChartLines() {
+  // set up
+  const visWidth = 800;
+  const visHeight = 400;
+  const margin = { top: 10, right: 20, bottom: 50, left: 50 };
+  const totalWidth = visWidth + margin.left + margin.right;
+  const totalHeight = visHeight + margin.top + margin.bottom;
+
+  const svg = d3.create("svg")
+    .attr("width", totalWidth)
+    .attr("height", totalHeight)
+    .attr("viewBox", [0, 0, totalWidth, totalHeight])
+    .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
+
+  const g = svg
+    .append("g")
+    .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+  // create scales
+  const x = d3.scaleLinear().range([0, visWidth]);
+
+  let lineColor = d3.scaleOrdinal().domain(color_names).range(rgb_values);
+
+  const y = d3
+    .scaleBand()
+    .domain(color_names)
+    .range([0, visHeight])
+    .padding(0.2);
+
+  // create and add axes
+  const xAxis = d3.axisBottom(x).tickSizeOuter(0);
+  const xAxisGroup = g
+    .append("g")
+    .attr("transform", `translate(0, ${visHeight})`);
+  xAxisGroup
+    .append("text")
+    .attr("x", visWidth / 2)
+    .attr("y", 40)
+    .attr("fill", "black")
+    .attr("text-anchor", "middle")
+    .text("Total Ridership");
+
+  const yAxis = d3.axisLeft(y);
+  const yAxisGroup = g
+    .append("g")
+    .call(yAxis)
+    // remove baseline from the axis
+    .call((g) => g.select(".domain").remove());
+
+  let barsGroup = g.append("g");
+
+  function update(month, year, ridership) {
+    // something is causing ridership to not have .filter method
+    const data = ridership.filter(
+      (item) => item.date.getMonth() == month && item.date.getFullYear() == year
+    );
+
+    // update sums
+    var lineCounts = new Map();
+    for (let i = 0; i < color_names.length; i++) {
+      lineCounts.set(
+        color_names[i],
+        d3.sum(data, (d) => d[color_names[i]])
+      );
+    }
+
+    // update x scale
+    x.domain([0, d3.max(lineCounts.values())]).nice();
+
+    // update x axis
+    const t = svg.transition().ease(d3.easeLinear).duration(200);
+
+    xAxisGroup.transition(t).call(xAxis);
+
+    // draw bars
+    barsGroup
+      .selectAll("rect")
+      .data(lineCounts, ([line, count]) => line)
+      .join("rect")
+      .attr("fill", ([line, count]) => lineColor(line))
+      .attr("height", y.bandwidth())
+      .attr("x", 0)
+      .attr("y", ([line, count]) => y(line))
+      .transition(t)
+      .attr("width", ([line, count]) => x(count));
+  }
+
+  return Object.assign(svg.node(), { update });
+}
+
+function bars(ridership) {
+  let width = 400;
+  let height = 600;
+  let interactiveMonth = document.getElementById("monthSlider").value;
+  let interactiveYear = document.getElementById("yearSlider").value;
+
+  var monthSlider = document.getElementById("monthSlider");
+  var yearSlider = document.getElementById("yearSlider");
+
+  var outputMonth = document.getElementById("month");
+  var outputYear = document.getElementById("year");
+
+  // show initial values
+  outputMonth.innerHTML = parseInt(monthSlider.value) + 1;
+  interactiveMonth = monthSlider.value;
+  outputYear.innerHTML = yearSlider.value;
+  interactiveYear = yearSlider.value;
+
+  const bar = barChartLines();
+  bar.update(interactiveMonth, interactiveYear, ridership);
+
+  monthSlider.onchange = () => {
+    outputMonth.innerHTML = parseInt(monthSlider.value) + 1;
+    interactiveMonth = monthSlider.value;
+    bar.update(interactiveMonth, interactiveYear, ridership);
+  };
+
+  yearSlider.onchange = () => {
+    outputYear.innerHTML = yearSlider.value;
+    interactiveYear = yearSlider.value;
+    bar.update(interactiveMonth, interactiveYear, ridership);
+  };
+
+  d3.select("#barchart")
+    .append(() => bar)
+    .attr("viewbox", `0 0 1px 0`)
+    .attr("class", "svg-item");
+  return bar;
 }
 
 function drawMap(ridership, lstations, raillines, zipcodes) {
@@ -1213,8 +1053,6 @@ function drawLinkedChart(weather, ridership, lstations) {
     }),
     (d) => d.date
   );
-  console.log(lineCounts);
-
   var svgWeather = brushableLineChart();
   var svgRidership = multipleLineChart();
 
