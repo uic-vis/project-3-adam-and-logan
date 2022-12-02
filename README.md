@@ -27,8 +27,8 @@ Station information for all 'L' stations.
 
 1. `station_id`: integer, five-digit number assigned to each 'L' station
 1. `station_name`: string, full name of the station
-1. `ada`: boolean, line is ADA accessible 
-1. `line`: boolean, several columns; which lines the station services 
+1. `ada`: boolean, true if line is ADA accessible 
+1. `line`: integer, several columns; if the station serves the line, ratio of rides to that line. null otherwise
 1. `longitude`, `latitude`: float, location of the station
 
 ### Weather Data
@@ -37,7 +37,7 @@ We used monthly average temperatures going back to January 2001 from [weather.go
 
 1. `year`: int, 4 digit year
 1. `month`: string, 3 letter month
-1. `avg_temp`: average temperature for the date in fahrenheit
+1. `avg_temp`: float, average temperature for the date in fahrenheit
 
 ## Processing
 
