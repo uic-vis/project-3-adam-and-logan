@@ -1309,17 +1309,23 @@ function drawLinkedChart(weather, ridership, lstations) {
 
     // brush
     const brush = d3
-      .brush()
+      .brushX()
       .extent([
         [0, 0],
         [visWidth, visHeight],
       ])
-      // .on("brush", onBrush)
       .on("end", endBrush);
 
-    g.append("g").attr("id", "brush_g").call(brush);
+    svg
+      .append("g")
+      .attr("class", "brush")
+      .call(brush)
+      .call(brush.move, [500, 525])
 
-    g.append("g").attr("id", "brush_g").call(brush);
+    // removes handle to resize the brush
+    d3.selectAll('.brush>.handle').remove();
+    // removes crosshair cursor
+    d3.selectAll('.brush>.overlay').remove();
 
     function endBrush(event) {
       if (event.selection == null) {
@@ -1332,10 +1338,10 @@ function drawLinkedChart(weather, ridership, lstations) {
       function isBrushed(d) {
         const cx = x(d.date);
         const cy = y(d.temp);
-        return cx >= x1 && cx <= x2 && cy >= y1 && cy <= y2;
+        return cx >= x1 && cx <= x2;
       }
 
-      const [[x1, y1], [x2, y2]] = event.selection;
+      const [x1, x2] = event.selection;
       const brushed = weather.filter(isBrushed);
 
       if (brushed.length) {
